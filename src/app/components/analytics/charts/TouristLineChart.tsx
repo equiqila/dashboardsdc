@@ -13,21 +13,25 @@ interface Props {
 }
 
 const COLORS = [
-    "#1a7a6d", "#22c4ab", "#3d9986", "#54c6b1", "#0e5e54",
-    "#2b8c7e", "#78d6c8", "#3a756b", "#1bd4b8", "#6ec9bb",
-    "#a8e6df", "#c4f0ea", "#087265", "#47a89a",
+    "#0e5e54", "#e63946", "#f4a261", "#9b59b6", "#3498db",
+    "#f1c40f", "#e91e63", "#2ecc71", "#ff5722", "#1565c0",
+    "#00bcd4", "#795548", "#8bc34a",
 ];
 
 function TouristLineChartComponent({ data, filter }: Props) {
     const filtered = useMemo(() => {
         if (filter === "Semua") return data;
         return data.filter((r) => {
-            const destInfo = DESTINATIONS.find((d) =>
-                // match by normalized name
-                r.provinsi.toLowerCase().replace(/\s+/g, '') === d.name.toLowerCase().replace(/\s+/g, '') ||
-                r.provinsi.toLowerCase().includes(d.name.toLowerCase()) ||
-                (d.provinceMatch && r.provinsi.toLowerCase() === d.provinceMatch.toLowerCase())
-            );
+            const destInfo = DESTINATIONS.find((d) => {
+                if (!d.provinceMatch) {
+                    return r.provinsi.toLowerCase().replace(/\s+/g, '') === d.name.toLowerCase().replace(/\s+/g, '') ||
+                        r.provinsi.toLowerCase().includes(d.name.toLowerCase());
+                }
+                if (Array.isArray(d.provinceMatch)) {
+                    return (d.provinceMatch as string[]).some((pm: string) => r.provinsi.toLowerCase().includes(pm.toLowerCase()));
+                }
+                return r.provinsi.toLowerCase().includes(d.provinceMatch.toLowerCase());
+            });
             if (!destInfo) return false;
             return destInfo.type === filter;
         });

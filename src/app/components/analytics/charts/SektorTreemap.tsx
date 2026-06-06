@@ -5,26 +5,22 @@ import { ChartEmptyState } from "../ChartEmptyState";
 
 interface Props {
     data: SektorMappingRecord[];
-    filter: "Semua" | "DPP" | "DPR";
+    filter: string; // "Semua" or specific destination name
 }
 
-const COLORS = [
-    "#1a7a6d", "#22c4ab", "#0e5e54", "#2b8c7e", "#3d9986",
-    "#54c6b1", "#78d6c8", "#a8e6df", "#087265", "#47a89a",
-    "#e07b39", "#9b59b6", "#3498db", "#f1c40f",
+// Darkest → lightest: largest sector gets darkest color
+const GRADIENT_COLORS = [
+    "#062e27", "#0a4a3e", "#0e5e54", "#1a7a6d", "#22a894",
+    "#22c4ab", "#4dd4c0", "#78d6c8", "#a8e6df", "#d4f5f0",
 ];
 
 function SektorTreemapComponent({ data, filter }: Props) {
     const filtered = useMemo(() => {
         if (filter === "Semua") return data;
-        return data.filter((r) =>
-            filter === "DPP"
-                ? r.destination.includes("(DPP)")
-                : r.destination.includes("(DPR)")
-        );
+        return data.filter((r) => r.destination === filter);
     }, [data, filter]);
 
-    // Aggregate by sector (sum across all destinations)
+    // Aggregate by sector (sum across all destinations in current filter)
     const bySector = useMemo(() => {
         const m = new Map<string, number>();
         filtered.forEach((r) => {
@@ -33,7 +29,7 @@ function SektorTreemapComponent({ data, filter }: Props) {
         const total = Array.from(m.values()).reduce((s, v) => s + v, 0);
         return Array.from(m.entries())
             .map(([sektor, jumlah]) => ({ name: sektor, size: jumlah, total }))
-            .sort((a, b) => b.size - a.size);
+            .sort((a, b) => b.size - a.size); // largest first
     }, [filtered]);
 
     if (!bySector.length) return <ChartEmptyState message="Tidak ada data sektor investasi." />;
@@ -44,9 +40,11 @@ function SektorTreemapComponent({ data, filter }: Props) {
         const pct = total > 0 ? ((size / total) * 100).toFixed(1) : "0";
         const isLarge = width > 100 && height > 60;
         const isMedium = width > 60 && height > 40;
+        // Assign color by rank: index 0 (largest) = darkest
+        const color = GRADIENT_COLORS[Math.min(index, GRADIENT_COLORS.length - 1)];
         return (
             <g>
-                <rect x={x} y={y} width={width} height={height} fill={COLORS[index % COLORS.length]} rx={4} />
+                <rect x={x} y={y} width={width} height={height} fill={color} rx={4} />
                 {isMedium && (
                     <text x={x + width / 2} y={y + height / 2 - (isLarge ? 10 : 0)} textAnchor="middle" fill="white" fontSize={isLarge ? 13 : 10} fontWeight="bold" style={{ pointerEvents: "none" }}>
                         {name}

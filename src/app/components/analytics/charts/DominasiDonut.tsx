@@ -58,12 +58,6 @@ function DominasiDonutComponent({ data, tahun }: Props) {
                     />
                 </PieChart>
             </ResponsiveContainer>
-            {/* Center label */}
-            <div className="absolute flex flex-col items-center justify-center pointer-events-none">
-                <p className="text-xs text-muted-foreground font-medium tracking-wide uppercase">Investment Share</p>
-                <p className="text-2xl font-bold text-foreground mt-1">{pmaPct}%</p>
-                <p className="text-xs text-muted-foreground">PMA</p>
-            </div>
         </div>
     );
 }

@@ -45,19 +45,21 @@ export const DESTINATION_LINE_COLORS = [
 ];
 
 export const DESTINATIONS: Destination[] = [
-  { id: "mandala", name: "Mandalika", type: "DPP", provinceMatch: "NTB" },
-  { id: "labuan-bajo", name: "Labuan Bajo", type: "DPP", provinceMatch: "NTT" },
-  { id: "borobudur", name: "Borobudur", type: "DPP", provinceMatch: "Jawa Tengah & DI Yogyakarta" },
-  { id: "danau-toba", name: "Danau Toba", type: "DPP", provinceMatch: "Sumatera Utara" },
-  { id: "likupang", name: "Likupang", type: "DPP", provinceMatch: "Sulawesi Utara" },
-  { id: "tanjung-kelayang", name: "Tanjung Kelayang", type: "DPP", provinceMatch: "Kepulauan Bangka Belitung" },
-  { id: "morotai", name: "Morotai", type: "DPP" },
-  { id: "wakatobi", name: "Wakatobi", type: "DPP" },
-  { id: "raja-ampat", name: "Raja Ampat", type: "DPP", provinceMatch: "Papua Barat & Papua Barat Daya" },
-  { id: "bunaken", name: "Bunaken", type: "DPP" },
+  // DPP – Destinasi Pariwisata Premium (10 destinasi/wilayah)
+  { id: "sumut", name: "Sumatera Utara", type: "DPP", provinceMatch: "Sumatera Utara" },
+  { id: "jateng-diy", name: "Jawa Tengah & DI Yogyakarta", type: "DPP", provinceMatch: ["Jawa Tengah", "DI Yogyakarta"] },
+  { id: "ntb", name: "NTB", type: "DPP", provinceMatch: "NTB" },
+  { id: "ntt", name: "NTT", type: "DPP", provinceMatch: "NTT" },
+  { id: "sulut", name: "Sulawesi Utara", type: "DPP", provinceMatch: "Sulawesi Utara" },
+  { id: "kep-babel", name: "Kepulauan Bangka Belitung", type: "DPP", provinceMatch: "Kepulauan Bangka Belitung" },
+  { id: "papua-barat-pbd", name: "Papua Barat & Papua Barat Daya", type: "DPP", provinceMatch: ["Papua Barat", "Papua Barat Daya"] },
+  { id: "sultra", name: "Sulawesi Tenggara", type: "DPP", provinceMatch: "Sulawesi Tenggara" },
+  { id: "malut", name: "Maluku Utara", type: "DPP", provinceMatch: "Maluku Utara" },
+  { id: "jatim", name: "Jawa Timur", type: "DPP", provinceMatch: "Jawa Timur" },
+  // DPR – Destinasi Pariwisata Reguler (3 destinasi)
   { id: "bali", name: "Bali", type: "DPR", provinceMatch: "Bali" },
-  { id: "yogyakarta", name: "Yogyakarta", type: "DPR", provinceMatch: "Jawa Tengah & DI Yogyakarta" },
-  { id: "jakarta", name: "Jakarta", type: "DPR", provinceMatch: "DKI Jakarta" },
+  { id: "jakarta", name: "Jakarta", type: "DPR", provinceMatch: "Jakarta" },
+  { id: "kepri", name: "Kepulauan Riau", type: "DPR", provinceMatch: "Kepulauan Riau" },
 ];
 
 export const YEARS = ["2019", "2020", "2021", "2022", "2023", "2024", "2025"];

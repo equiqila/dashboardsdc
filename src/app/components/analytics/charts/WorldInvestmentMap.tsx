@@ -11,9 +11,7 @@ import type {
   PerusahaanInvestorRecord,
   HubunganInvestorSektorRecord,
 } from "../../../data/types";
-import { CHART_COLORS } from "../../../data/constants";
 import { ChartEmptyState } from "../ChartEmptyState";
-import { formatCurrency } from "../useChartLoading";
 
 const GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
@@ -27,6 +25,15 @@ const NAME_ALIASES: Record<string, string> = {
   "United Kingdom": "Inggris",
   "South Korea": "Korea Selatan",
   "Singapore": "Singapura",
+  "Japan": "Jepang",
+  "Malaysia": "Malaysia",
+  "Australia": "Australia",
+  "Netherlands": "Belanda",
+  "Germany": "Jerman",
+  "Canada": "Kanada",
+  "Switzerland": "Swiss",
+  "France": "Prancis",
+  "India": "India",
 };
 
 interface ComputedMapPoint {
@@ -52,13 +59,16 @@ interface Props {
   year: string;
 }
 
+// Multi-color scale: Yellow → Green → Blue for better contrast
 function getFillColor(intensity: number, hasData: boolean, selected: boolean): string {
-  if (selected) return "#0a4a4b";
-  if (!hasData) return "#e2e8f0"; // Gray (Abu)
+  if (selected) return "#1e3a8a"; // dark blue when selected
+  if (!hasData) return "#f1f5f9"; // very light gray for no data
 
-  if (intensity >= 0.7) return "#15803d"; // Hijau Tua
-  if (intensity >= 0.3) return "#eab308"; // Kuning
-  return "#3b82f6"; // Biru
+  if (intensity >= 0.8) return "#1e40af"; // darkest blue
+  if (intensity >= 0.6) return "#1d4ed8"; // blue
+  if (intensity >= 0.4) return "#059669"; // green
+  if (intensity >= 0.2) return "#10b981"; // light green
+  return "#facc15";              // yellow (baseline data)
 }
 
 function CountryDetailPanel({
@@ -145,15 +155,25 @@ function WorldInvestmentMapComponent({ negaraData, perusahaanData, hubunganSekto
   const [selected, setSelected] = useState<ComputedMapPoint | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 
+  const isAllYears = year === "Semua" || year === "Semua Tahun";
+
   const mapData = useMemo(() => {
     let maxInv = 0;
+
     const computed: ComputedMapPoint[] = negaraData.map((n) => {
-      const val = (year === "Semua" || year === "Semua Tahun") ? n.grandTotal : (n.byYear[year] ?? 0);
+      // Use grandTotal for "Semua", otherwise use the specific year's value
+      const val = isAllYears
+        ? (n.grandTotal || Object.values(n.byYear).reduce((s, v) => s + v, 0))
+        : (n.byYear[year] ?? 0);
+
       if (val > maxInv) maxInv = val;
 
       // Sum project counts mapped to this country
-      const companies = perusahaanData.filter((p) => p.negaraAsal.toLowerCase() === n.negara.toLowerCase());
-      const projectCount = companies.reduce((sum, c) => sum + (c.jumlah || 0), 0) || val; // fallback to inv score
+      const companies = perusahaanData.filter((p) =>
+        p.negaraAsal.toLowerCase() === n.negara.toLowerCase() ||
+        NAME_ALIASES[p.negaraAsal]?.toLowerCase() === n.negara.toLowerCase()
+      );
+      const projectCount = companies.reduce((sum, c) => sum + (c.jumlah || 0), 0) || val;
 
       return {
         country: n.negara,
@@ -167,12 +187,15 @@ function WorldInvestmentMapComponent({ negaraData, perusahaanData, hubunganSekto
       ...c,
       intensity: maxInv > 0 ? c.totalInvestment / maxInv : 0
     }));
-  }, [negaraData, perusahaanData, year]);
+  }, [negaraData, perusahaanData, year, isAllYears]);
 
   const detail = useMemo(() => {
     if (!selected) return null;
 
-    const companiesFromCountry = perusahaanData.filter(p => p.negaraAsal.toLowerCase() === selected.country.toLowerCase());
+    const companiesFromCountry = perusahaanData.filter(p =>
+      p.negaraAsal.toLowerCase() === selected.country.toLowerCase() ||
+      NAME_ALIASES[p.negaraAsal]?.toLowerCase() === selected.country.toLowerCase()
+    );
     const selectedCompanyNames = companiesFromCountry.map(c => c.perusahaan);
 
     // Calculate sector breakdown based on these companies
@@ -212,7 +235,10 @@ function WorldInvestmentMapComponent({ negaraData, perusahaanData, hubunganSekto
 
   const resolveCountry = (geoName: string): ComputedMapPoint | undefined => {
     const searchName = NAME_ALIASES[geoName] ?? geoName;
-    return mapData.find((d) => d.country.toLowerCase() === searchName.toLowerCase());
+    return mapData.find((d) =>
+      d.country.toLowerCase() === searchName.toLowerCase() ||
+      d.country.toLowerCase() === geoName.toLowerCase()
+    );
   };
 
   const handleClick = (countryData: ComputedMapPoint) => {
@@ -252,7 +278,7 @@ function WorldInvestmentMapComponent({ negaraData, perusahaanData, hubunganSekto
                       style={{
                         default: { outline: "none" },
                         hover: {
-                          fill: countryData ? (isSelected ? "#0a4a4b" : CHART_COLORS.primary) : "#d1d5db",
+                          fill: countryData ? (isSelected ? "#022c22" : "#047857") : "#d1d5db",
                           outline: "none",
                           cursor: countryData ? "pointer" : "default",
                         },
@@ -299,23 +325,32 @@ function WorldInvestmentMapComponent({ negaraData, perusahaanData, hubunganSekto
         </div>
       )}
 
+      {/* Color gradient legend */}
       <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground flex-wrap">
         <span>Intensitas Investasi:</span>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: "#15803d" }} />
-          <span>Tinggi</span>
+          <div className="w-4 h-4 rounded" style={{ backgroundColor: "#1e40af" }} />
+          <span>Sangat Tinggi (Biru Tua)</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: "#eab308" }} />
-          <span>Menengah</span>
+          <div className="w-4 h-4 rounded" style={{ backgroundColor: "#1d4ed8" }} />
+          <span>Tinggi (Biru)</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: "#3b82f6" }} />
-          <span>Rendah</span>
+          <div className="w-4 h-4 rounded" style={{ backgroundColor: "#059669" }} />
+          <span>Menengah (Hijau)</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-[#e2e8f0]" />
-          <span>Tidak Ada/Belum Tercatat</span>
+          <div className="w-4 h-4 rounded" style={{ backgroundColor: "#10b981" }} />
+          <span>Rendah (Hijau Muda)</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded" style={{ backgroundColor: "#facc15" }} />
+          <span>Baseline (Kuning)</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded bg-[#f1f5f9]" />
+          <span>Tidak Ada</span>
         </div>
       </div>
 

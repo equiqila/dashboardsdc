@@ -26,10 +26,12 @@ function IntensitasPencarianLineComponent({ data, filter }: Props) {
     const pivoted = useMemo(() => {
         const src = filter === "Semua" ? data : data.filter((r) => r.destination === filter);
         const byYear = new Map<number, Record<string, number>>();
-        src.forEach((r) => {
-            if (!byYear.has(r.year)) byYear.set(r.year, { year: r.year });
-            byYear.get(r.year)![r.destination] = r.count;
-        });
+        src
+            .filter((r) => r.year >= 2022) // start from 2022
+            .forEach((r) => {
+                if (!byYear.has(r.year)) byYear.set(r.year, { year: r.year });
+                byYear.get(r.year)![r.destination] = r.count;
+            });
         return Array.from(byYear.values()).sort((a, b) => a.year - b.year);
     }, [data, filter]);
 

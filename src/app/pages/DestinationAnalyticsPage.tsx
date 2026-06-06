@@ -20,7 +20,7 @@ export function DestinationAnalyticsPage() {
   const [scatterFilter, setScatterFilter] = useState<string>("Semua");
   const [attractYear, setAttractYear] = useState<string>("Semua");
   const [launchFilter, setLaunchFilter] = useState<string>("Semua");
-  const [sektorFilter, setSektorFilter] = useState<DppDprFilter>("Semua");
+  const [sektorFilter, setSektorFilter] = useState<string>("Semua");
 
   // Destination options from data
   const destinationOptions = useMemo(() => {
@@ -32,6 +32,12 @@ export function DestinationAnalyticsPage() {
   const launchOptions = useMemo(() => {
     if (!data) return [];
     const dests = [...new Set(data.newInvestmentLaunch.map((r) => r.destinasi))].sort();
+    return [{ label: "Semua Destinasi", value: "Semua" }, ...dests.map((d) => ({ label: d, value: d }))];
+  }, [data]);
+
+  const sektorDetailOptions = useMemo(() => {
+    if (!data) return [{ label: "Semua Destinasi", value: "Semua" }];
+    const dests = [...new Set(data.sektorMapping.map((r) => r.destination))].sort();
     return [{ label: "Semua Destinasi", value: "Semua" }, ...dests.map((d) => ({ label: d, value: d }))];
   }, [data]);
 
@@ -123,8 +129,8 @@ export function DestinationAnalyticsPage() {
           action={
             <ChartFilterSelect
               value={sektorFilter}
-              options={dppDprOptions}
-              onChange={(v) => setSektorFilter(v as DppDprFilter)}
+              options={sektorDetailOptions}
+              onChange={setSektorFilter}
             />
           }
         >

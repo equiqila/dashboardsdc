@@ -44,8 +44,8 @@ function AttractivenessBarComponent({ data, tahun }: Props) {
                 <YAxis
                     type="category"
                     dataKey="provinsi"
-                    width={180}
-                    tick={{ fontSize: 10 }}
+                    width={240}
+                    tick={{ fontSize: 9 }}
                 />
                 <Tooltip formatter={(v: number) => [v, "Investment Score"]} />
                 <Bar dataKey="investment" fill={PRIMARY_COLOR} radius={[0, 4, 4, 0]} maxBarSize={28}>
