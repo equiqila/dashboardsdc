@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { InvestorCategory } from "../data/types";
 import { DESTINATIONS, YEARS } from "../data/constants";
+import { useExcelData } from "../data/ExcelDataContext";
 import {
   processCountryMap,
   processInvestorFrequency,
@@ -32,6 +33,8 @@ const destinationOptions = [
 ];
 
 export function InvestorAnalyticsPage() {
+  const { data, loading: dataLoading } = useExcelData();
+
   const [mapYear, setMapYear] = useState("2024");
   const [frequencyCategory, setFrequencyCategory] = useState<InvestorCategory | "All">("All");
   const [heatmapCategory, setHeatmapCategory] = useState<InvestorCategory | "All">("All");
@@ -44,30 +47,52 @@ export function InvestorAnalyticsPage() {
   const loadingPie = useChartLoading([pieYear]);
   const loadingSearch = useChartLoading([searchDest]);
 
-  const countryMap = useMemo(() => processCountryMap(mapYear), [mapYear]);
+  const countryMap = useMemo(
+    () => data ? processCountryMap(data.countryInvestmentData, mapYear) : [],
+    [mapYear, data],
+  );
 
   const investorFrequency = useMemo(
-    () => processInvestorFrequency(frequencyCategory, "2024"),
-    [frequencyCategory],
+    () => data ? processInvestorFrequency(data.investorData, frequencyCategory, "2024") : [],
+    [frequencyCategory, data],
   );
 
   const heatmap = useMemo(
-    () => processInvestorSectorHeatmap(heatmapCategory, "2024"),
-    [heatmapCategory],
+    () => data ? processInvestorSectorHeatmap(data.investorData, heatmapCategory, "2024") : { cells: [], investors: [], maxValue: 0 },
+    [heatmapCategory, data],
   );
 
   const foreignDomestic = useMemo(
-    () => processForeignDomesticPie(pieYear),
-    [pieYear],
+    () => data ? processForeignDomesticPie(data.investmentOpportunityData, pieYear) : [],
+    [pieYear, data],
   );
 
   const searchIntensity = useMemo(
     () =>
-      processSearchIntensityTrend(
-        searchDest === "All" ? DESTINATIONS.map((d) => d.id) : [searchDest],
-      ),
-    [searchDest],
+      data
+        ? processSearchIntensityTrend(
+          data.searchIntensityData,
+          searchDest === "All" ? DESTINATIONS.map((d) => d.id) : [searchDest],
+        )
+        : { data: [], lines: [] },
+    [searchDest, data],
   );
+
+  if (dataLoading) {
+    return (
+      <div className="space-y-6">
+        <ChartLoadingState height={400} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ChartLoadingState height={240} />
+          <ChartLoadingState height={360} />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ChartLoadingState />
+          <ChartLoadingState height={320} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -81,15 +106,20 @@ export function InvestorAnalyticsPage() {
         {loadingMap ? (
           <ChartLoadingState height={400} />
         ) : (
-          <WorldInvestmentMap data={countryMap} year={mapYear} />
+          <WorldInvestmentMap
+            data={countryMap}
+            year={mapYear}
+            countryInvestmentData={data!.countryInvestmentData}
+            investorData={data!.investorData}
+          />
         )}
       </ChartCard>
 
       {/* Row 2: frequency + heatmap side by side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ChartCard
           title="Perusahaan dengan Frekuensi Investasi Paling Banyak"
-          className="!pb-4"
+          className="h-full !pb-4"
           action={
             <ChartFilterSelect
               value={frequencyCategory}
@@ -107,6 +137,7 @@ export function InvestorAnalyticsPage() {
 
         <ChartCard
           title="Hubungan Investor dan Sektor"
+          className="h-full"
           action={
             <ChartFilterSelect
               value={heatmapCategory}

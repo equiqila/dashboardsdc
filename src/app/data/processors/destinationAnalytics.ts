@@ -8,14 +8,12 @@ import type {
   SectorTreemapPoint,
   EventTypeStackedPoint,
   DestinationType,
+  TouristArrivalRecord,
+  InitialInvestmentRecord,
+  AttractivenessRecord,
+  SectorInvestmentRecord,
+  InvestmentEventRecord,
 } from "../types";
-import {
-  touristArrivalsData,
-  initialInvestmentData,
-  attractivenessData,
-  sectorInvestmentData,
-  investmentEventData,
-} from "../mockData";
 import { DESTINATIONS, SECTOR_COLORS, EVENT_TYPE_COLORS, DESTINATION_LINE_COLORS, getDestinationKey } from "../constants";
 
 function getDestinationName(id: string): string {
@@ -28,6 +26,7 @@ function filterByDestinationType(type: DestinationType | "All"): string[] {
 }
 
 export function processTouristArrivals(
+  touristArrivalsData: TouristArrivalRecord[],
   destinationId: string,
   destinationType: DestinationType | "All" = "All",
 ): TouristArrivalChartPoint[] {
@@ -51,6 +50,8 @@ export function processTouristArrivals(
 }
 
 export function processArrivalsVsInvestment(
+  touristArrivalsData: TouristArrivalRecord[],
+  initialInvestmentData: InitialInvestmentRecord[],
   destinationId: string,
   year: string,
   destinationType: DestinationType | "All" = "All",
@@ -80,6 +81,7 @@ export function processArrivalsVsInvestment(
 }
 
 export function processAttractivenessRanking(
+  attractivenessData: AttractivenessRecord[],
   year: string,
   destinationType: DestinationType | "All" = "All",
 ): AttractivenessRankingPoint[] {
@@ -99,6 +101,7 @@ export function processAttractivenessRanking(
 }
 
 export function processLaunchFrequencyMulti(
+  initialInvestmentData: InitialInvestmentRecord[],
   destinationId: string,
 ): { data: LaunchFrequencyMultiPoint[]; lines: LaunchFrequencyLineConfig[] } {
   const years = [...new Set(initialInvestmentData.map((r) => r.year))].sort();
@@ -148,6 +151,7 @@ export function processLaunchFrequencyMulti(
 }
 
 export function processLaunchFrequency(
+  initialInvestmentData: InitialInvestmentRecord[],
   destinationId: string,
   destinationType: DestinationType | "All" = "All",
 ): LaunchFrequencyPoint[] {
@@ -171,6 +175,7 @@ export function processLaunchFrequency(
 }
 
 export function processSectorTreemap(
+  sectorInvestmentData: SectorInvestmentRecord[],
   destinationId: string,
   destinationType: DestinationType | "All" = "All",
 ): SectorTreemapPoint[] {
@@ -206,6 +211,7 @@ export function processSectorTreemap(
 }
 
 export function processEventTypeStacked(
+  investmentEventData: InvestmentEventRecord[],
   destinationId: string,
   destinationType: DestinationType | "All" = "All",
 ): EventTypeStackedPoint[] {
@@ -225,13 +231,15 @@ export function processEventTypeStacked(
       "Investment Opportunity": 0,
     };
     events.forEach((e) => {
-      point[e.eventType] = e.count;
+      point[e.eventType] = (point[e.eventType] ?? 0) + e.count;
     });
     return point;
   });
 }
 
 export function computeDestinationKpis(
+  touristArrivalsData: TouristArrivalRecord[],
+  initialInvestmentData: InitialInvestmentRecord[],
   destinationId: string,
   year: string,
   destinationType: DestinationType | "All" = "All",

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Excel Inspector</title>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <h1>Excel File Inspector</h1>
+  <div id="output" style="white-space:pre;font-family:monospace;font-size:12px"></div>
+  <script>
+    const files = [
+      'Data_Kemenpar_UPDATED.xlsx',
+      'data_jumlah_wisatawan.xlsx', 
+      'data_investasi.xlsx',
+      'data_awal.xlsx',
+    ];
+    
+    async function inspectFile(fname) {
+      let out = `\n${'='.repeat(60)}\nFILE: ${fname}\n${'='.repeat(60)}\n`;
+      try {
+        const resp = await fetch('/' + fname);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const arrayBuffer = await resp.arrayBuffer();
+        const wb = XLSX.read(arrayBuffer, {type: 'array'});
+        out += `Sheets: ${wb.SheetNames.join(', ')}\n`;
+        for (const sname of wb.SheetNames) {
+          out += `\n  --- Sheet: ${sname} ---\n`;
+          const ws = wb.Sheets[sname];
+          const json = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
+          const maxRows = Math.min(json.length, 8);
+          out += `  Total rows: ${json.length}\n`;
+          out += `  Headers: ${JSON.stringify(json[0])}\n`;
+          for (let i = 1; i < maxRows; i++) {
+            out += `  Row ${i+1}: ${JSON.stringify(json[i])}\n`;
+          }
+        }
+      } catch(e) {
+        out += `  ERROR: ${e.message}\n`;
+      }
+      return out;
+    }
+    
+    (async () => {
+      let result = '';
+      for (const f of files) {
+        result += await inspectFile(f);
+      }
+      document.getElementById('output').textContent = result;
+    })();
+  </script>
+</body>
+</html>

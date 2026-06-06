@@ -17,9 +17,13 @@ function SectorTreemapChartComponent({ data }: Props) {
         dataKey="value"
         aspectRatio={4 / 3}
         stroke="#fff"
-        content={({ x, y, width, height, name, value, index }) => {
-          if (width < 50 || height < 35) return null;
+        content={(props: any) => {
+          const { x, y, width, height, name, value, index } = props;
+          if (width < 30 || height < 20) return null;
           const item = data[index ?? 0];
+          const isLarge = width > 120 && height > 80;
+          const isMedium = width > 80 && height > 50;
+
           return (
             <g>
               <rect
@@ -28,36 +32,35 @@ function SectorTreemapChartComponent({ data }: Props) {
                 width={width}
                 height={height}
                 fill={item?.fill ?? "#6b7280"}
-                rx={4}
+                stroke="#fff"
+                strokeWidth={1}
+                rx={2}
               />
-              <text
-                x={x + width / 2}
-                y={y + height / 2 - 8}
-                textAnchor="middle"
-                fill="#fff"
-                fontSize={width > 90 ? 12 : 10}
-                fontWeight={600}
-              >
-                {name}
-              </text>
-              <text
-                x={x + width / 2}
-                y={y + height / 2 + 8}
-                textAnchor="middle"
-                fill="#fff"
-                fontSize={10}
-              >
-                {item?.percentage}%
-              </text>
-              <text
-                x={x + width / 2}
-                y={y + height / 2 + 22}
-                textAnchor="middle"
-                fill="rgba(255,255,255,0.85)"
-                fontSize={9}
-              >
-                {value}B Rp
-              </text>
+              {height > 30 && (
+                <text
+                  x={x + width / 2}
+                  y={y + height / 2 - (isMedium ? 10 : 0)}
+                  textAnchor="middle"
+                  fill="#fff"
+                  fontSize={isLarge ? 14 : isMedium ? 12 : 10}
+                  fontWeight={600}
+                  style={{ pointerEvents: 'none' }}
+                >
+                  {name}
+                </text>
+              )}
+              {isMedium && (
+                <text
+                  x={x + width / 2}
+                  y={y + height / 2 + 6}
+                  textAnchor="middle"
+                  fill="#fff"
+                  fontSize={10}
+                  style={{ pointerEvents: 'none', opacity: 0.9 }}
+                >
+                  {item?.percentage}%
+                </text>
+              )}
             </g>
           );
         }}

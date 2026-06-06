@@ -6,13 +6,11 @@ import type {
   InvestorCategory,
   SearchIntensityChartPoint,
   TourismSector,
+  CountryInvestmentRecord,
+  InvestorRecord,
+  InvestmentOpportunityRecord,
+  SearchIntensityRecord,
 } from "../types";
-import {
-  countryInvestmentData,
-  investorData,
-  investmentOpportunityData,
-  searchIntensityData,
-} from "../mockData";
 import { DESTINATIONS, DESTINATION_LINE_COLORS, TOURISM_SECTORS } from "../constants";
 
 const COUNTRY_ALIASES: Record<string, string> = {
@@ -25,7 +23,12 @@ function normalizeCountry(name: string): string {
   return COUNTRY_ALIASES[name] ?? name;
 }
 
-export function processCountryDetail(country: string, year: string): CountryDetailData | null {
+export function processCountryDetail(
+  countryInvestmentData: CountryInvestmentRecord[],
+  investorData: InvestorRecord[],
+  country: string,
+  year: string
+): CountryDetailData | null {
   const yearNum = parseInt(year);
   const normalized = normalizeCountry(country);
 
@@ -47,13 +50,13 @@ export function processCountryDetail(country: string, year: string): CountryDeta
   foreignInvestors.forEach((inv) => {
     Object.entries(inv.sectorInvestments).forEach(([sector, count]) => {
       const entry = sectorTotals.get(sector as TourismSector)!;
+      if (!entry) return;
       const projects = count ?? 0;
       entry.projects += projects;
-      entry.value += Math.round((projects / inv.investmentCount) * inv.totalValue);
+      entry.value += Math.round((projects / (inv.investmentCount || 1)) * inv.totalValue);
     });
   });
 
-  // Fill sector breakdown — distribute summary if no investor rows
   let sectors = TOURISM_SECTORS.map((sector) => {
     const t = sectorTotals.get(sector)!;
     return {
@@ -74,15 +77,15 @@ export function processCountryDetail(country: string, year: string): CountryDeta
 
   const companies = foreignInvestors.length
     ? foreignInvestors.map((inv) => {
-        const topSector = (Object.entries(inv.sectorInvestments) as [TourismSector, number][])
-          .sort((a, b) => b[1] - a[1])[0];
-        return {
-          company: inv.name,
-          sector: topSector?.[0] ?? "Accommodation",
-          projectCount: inv.investmentCount,
-          investmentValue: Math.round(inv.totalValue),
-        };
-      })
+      const topSector = (Object.entries(inv.sectorInvestments) as [TourismSector, number][])
+        .sort((a, b) => b[1] - a[1])[0];
+      return {
+        company: inv.name,
+        sector: topSector?.[0] ?? "Accommodation",
+        projectCount: inv.investmentCount,
+        investmentValue: Math.round(inv.totalValue),
+      };
+    })
     : generateFallbackCompanies(normalized, summary.projectCount, summary.totalInvestment);
 
   return {
@@ -113,7 +116,10 @@ function generateFallbackCompanies(
   }));
 }
 
-export function processCountryMap(year: string): CountryMapPoint[] {
+export function processCountryMap(
+  countryInvestmentData: CountryInvestmentRecord[],
+  year: string
+): CountryMapPoint[] {
   const yearNum = parseInt(year);
   const filtered = countryInvestmentData.filter((r) => r.year === yearNum);
   const maxInvestment = Math.max(...filtered.map((r) => r.totalInvestment), 1);
@@ -130,6 +136,7 @@ export function processCountryMap(year: string): CountryMapPoint[] {
 }
 
 export function processInvestorFrequency(
+  investorData: InvestorRecord[],
   category: InvestorCategory | "All",
   year: string,
   limit = 10,
@@ -163,6 +170,7 @@ export function processInvestorFrequency(
 }
 
 export function processInvestorSectorHeatmap(
+  investorData: InvestorRecord[],
   category: InvestorCategory | "All",
   year: string,
   limit = 10,
@@ -219,12 +227,17 @@ export function processInvestorSectorHeatmap(
   };
 }
 
-export function processForeignDomesticPie(year: string) {
+export function processForeignDomesticPie(
+  investmentOpportunityData: InvestmentOpportunityRecord[],
+  year: string
+) {
   const yearNum = parseInt(year);
   const record = investmentOpportunityData.find((r) => r.year === yearNum);
   if (!record) return [];
 
   const total = record.pmdn + record.pma;
+  if (total === 0) return [];
+
   return [
     {
       name: "PMDN (Domestic)",
@@ -242,14 +255,15 @@ export function processForeignDomesticPie(year: string) {
 }
 
 export function processSearchIntensityTrend(
+  searchIntensityData: SearchIntensityRecord[],
   selectedDestinations: string[],
 ): { data: SearchIntensityChartPoint[]; lines: { key: string; name: string; color: string }[] } {
   const destIds =
     selectedDestinations.length > 0
       ? selectedDestinations
       : DESTINATIONS.filter((d) => d.type === "DPP")
-          .slice(0, 5)
-          .map((d) => d.id);
+        .slice(0, 5)
+        .map((d) => d.id);
 
   const years = [...new Set(searchIntensityData.map((r) => r.year))].sort();
 
@@ -278,7 +292,11 @@ export function processSearchIntensityTrend(
   return { data, lines };
 }
 
-export function computeInvestorKpis(year: string, category: InvestorCategory | "All") {
+export function computeInvestorKpis(
+  investorData: InvestorRecord[],
+  year: string,
+  category: InvestorCategory | "All"
+) {
   const yearNum = parseInt(year);
   const filtered = investorData.filter((r) => r.year === yearNum);
   const categoryFiltered =

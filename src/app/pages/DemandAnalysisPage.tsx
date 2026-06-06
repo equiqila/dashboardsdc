@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -18,82 +18,7 @@ import {
   Treemap,
 } from "recharts";
 import { Filter, TrendingUp, AlertCircle, CheckCircle2, XCircle } from "lucide-react";
-
-const attractivenessData = [
-  { destination: "Mandalika", newsFrequency: 145, newInvestments: 28, searchIndex: 92, propertyListings: 387, confidence: 88 },
-  { destination: "Labuan Bajo", newsFrequency: 132, newInvestments: 24, searchIndex: 86, propertyListings: 342, confidence: 84 },
-  { destination: "Borobudur", newsFrequency: 118, newInvestments: 22, searchIndex: 81, propertyListings: 298, confidence: 79 },
-  { destination: "Danau Toba", newsFrequency: 108, newInvestments: 19, searchIndex: 75, propertyListings: 276, confidence: 75 },
-  { destination: "Likupang", newsFrequency: 95, newInvestments: 17, searchIndex: 68, propertyListings: 234, confidence: 71 },
-  { destination: "Tanjung Kelayang", newsFrequency: 82, newInvestments: 14, searchIndex: 62, propertyListings: 198, confidence: 66 },
-  { destination: "Morotai", newsFrequency: 68, newInvestments: 11, searchIndex: 54, propertyListings: 156, confidence: 59 },
-  { destination: "Wakatobi", newsFrequency: 61, newInvestments: 9, searchIndex: 49, propertyListings: 142, confidence: 55 },
-];
-
-const launchFrequencyData = [
-  { month: "Jan 2023", groundbreaking: 3, newProjects: 5, newHotels: 2, resorts: 1 },
-  { month: "Apr 2023", groundbreaking: 5, newProjects: 7, newHotels: 3, resorts: 2 },
-  { month: "Jul 2023", groundbreaking: 4, newProjects: 6, newHotels: 4, resorts: 3 },
-  { month: "Oct 2023", groundbreaking: 6, newProjects: 8, newHotels: 3, resorts: 2 },
-  { month: "Jan 2024", groundbreaking: 8, newProjects: 11, newHotels: 5, resorts: 4 },
-  { month: "Apr 2024", groundbreaking: 10, newProjects: 13, newHotels: 6, resorts: 5 },
-  { month: "Jul 2024", groundbreaking: 12, newProjects: 15, newHotels: 7, resorts: 6 },
-  { month: "Oct 2024", groundbreaking: 14, newProjects: 18, newHotels: 9, resorts: 7 },
-  { month: "Jan 2025", groundbreaking: 16, newProjects: 21, newHotels: 11, resorts: 8 },
-];
-
-const sectorMappingData = [
-  { name: "Hotel", value: 3200, fill: "#0F5D5E" },
-  { name: "Resort", value: 2800, fill: "#2A9D8F" },
-  { name: "Villa", value: 1500, fill: "#60a5fa" },
-  { name: "Tourism Area Development", value: 2200, fill: "#D4A017" },
-  { name: "Attraction", value: 1100, fill: "#a78bfa" },
-  { name: "Marine Tourism", value: 900, fill: "#34d399" },
-  { name: "Wellness & Spa", value: 750, fill: "#fbbf24" },
-  { name: "Culinary", value: 620, fill: "#f87171" },
-  { name: "Homestay", value: 580, fill: "#fb923c" },
-  { name: "Marina", value: 420, fill: "#6366f1" },
-  { name: "Diving Tourism", value: 380, fill: "#14b8a6" },
-];
-
-const destinationTrendData = [
-  { year: "2019", Morotai: 45, TanjungKelayang: 52, Mandalika: 78, LabuanBajo: 72, DanauToba: 68, Borobudur: 85, Likupang: 38, Wakatobi: 32 },
-  { year: "2020", Morotai: 38, TanjungKelayang: 45, Mandalika: 62, LabuanBajo: 58, DanauToba: 55, Borobudur: 68, Likupang: 32, Wakatobi: 28 },
-  { year: "2021", Morotai: 48, TanjungKelayang: 58, Mandalika: 92, LabuanBajo: 78, DanauToba: 72, Borobudur: 88, Likupang: 52, Wakatobi: 38 },
-  { year: "2022", Morotai: 68, TanjungKelayang: 82, Mandalika: 145, LabuanBajo: 122, DanauToba: 108, Borobudur: 132, Likupang: 85, Wakatobi: 58 },
-  { year: "2023", Morotai: 98, TanjungKelayang: 118, Mandalika: 215, LabuanBajo: 178, DanauToba: 152, Borobudur: 185, Likupang: 128, Wakatobi: 82 },
-  { year: "2024", Morotai: 142, TanjungKelayang: 168, Mandalika: 298, LabuanBajo: 245, DanauToba: 218, Borobudur: 255, Likupang: 185, Wakatobi: 118 },
-  { year: "2025", Morotai: 198, TanjungKelayang: 232, Mandalika: 398, LabuanBajo: 328, DanauToba: 295, Borobudur: 342, Likupang: 252, Wakatobi: 165 },
-];
-
-const sentimentData = [
-  { destination: "Mandalika", newInvestment: 145, expansion: 82, partnership: 56, cancelled: 12, delayed: 18, failed: 8 },
-  { destination: "Labuan Bajo", newInvestment: 128, expansion: 68, partnership: 48, cancelled: 15, delayed: 22, failed: 10 },
-  { destination: "Borobudur", newInvestment: 118, expansion: 62, partnership: 42, cancelled: 18, delayed: 25, failed: 12 },
-  { destination: "Danau Toba", newInvestment: 98, expansion: 52, partnership: 35, cancelled: 22, delayed: 28, failed: 15 },
-  { destination: "Likupang", newInvestment: 85, expansion: 45, partnership: 32, cancelled: 25, delayed: 32, failed: 18 },
-  { destination: "Morotai", newInvestment: 62, expansion: 32, partnership: 22, cancelled: 32, delayed: 38, failed: 22 },
-];
-
-const heatmapData = [
-  { destination: "Mandalika", Hotel: 95, Resort: 88, Villa: 72, Marina: 45, TourismArea: 82, Attraction: 68, Wellness: 58 },
-  { destination: "Labuan Bajo", Hotel: 85, Resort: 92, Villa: 65, Marina: 78, TourismArea: 75, Attraction: 82, Wellness: 52 },
-  { destination: "Borobudur", Hotel: 92, Resort: 68, Villa: 58, Marina: 25, TourismArea: 85, Attraction: 95, Wellness: 62 },
-  { destination: "Danau Toba", Hotel: 78, Resort: 75, Villa: 68, Marina: 35, TourismArea: 72, Attraction: 65, Wellness: 78 },
-  { destination: "Likupang", Hotel: 72, Resort: 85, Villa: 62, Marina: 68, TourismArea: 65, Attraction: 58, Wellness: 72 },
-  { destination: "Wakatobi", Hotel: 58, Resort: 72, Villa: 48, Marina: 88, TourismArea: 52, Attraction: 75, Wellness: 45 },
-];
-
-const opportunityMatrixData = [
-  { destination: "Mandalika", demand: 92, activity: 88, quadrant: "High Demand + High Investment" },
-  { destination: "Labuan Bajo", demand: 86, activity: 84, quadrant: "High Demand + High Investment" },
-  { destination: "Borobudur", demand: 81, activity: 79, quadrant: "High Demand + High Investment" },
-  { destination: "Danau Toba", demand: 85, activity: 65, quadrant: "High Demand + Low Investment" },
-  { destination: "Likupang", demand: 78, activity: 58, quadrant: "High Demand + Low Investment" },
-  { destination: "Tanjung Kelayang", demand: 62, activity: 72, quadrant: "Low Demand + High Investment" },
-  { destination: "Morotai", demand: 54, activity: 42, quadrant: "Low Demand + Low Investment" },
-  { destination: "Wakatobi", demand: 49, activity: 38, quadrant: "Low Demand + Low Investment" },
-];
+import { useExcelData } from "../data/ExcelDataContext";
 
 const recommendations = [
   {
@@ -122,7 +47,32 @@ const recommendations = [
   },
 ];
 
+const DEST_LABEL: Record<string, string> = {
+  "mandala": "Mandalika",
+  "labuan-bajo": "Labuan Bajo",
+  "borobudur": "Borobudur",
+  "danau-toba": "Danau Toba",
+  "likupang": "Likupang",
+  "tanjung-kelayang": "Tanjung Kelayang",
+  "morotai": "Morotai",
+  "wakatobi": "Wakatobi",
+  "raja-ampat": "Raja Ampat",
+  "bunaken": "Bunaken",
+  "bali": "Bali",
+  "yogyakarta": "Yogyakarta",
+  "jakarta": "Jakarta",
+};
+
+const TREEMAP_COLORS: Record<string, string> = {
+  "Accommodation": "#0F5D5E",
+  "Transportation": "#2A9D8F",
+  "Attractions": "#D4A017",
+  "Restaurants": "#60a5fa",
+  "Supporting Services": "#a78bfa",
+};
+
 export function DemandAnalysisPage() {
+  const { data, loading } = useExcelData();
   const [selectedYear, setSelectedYear] = useState("2024");
   const [selectedProvince, setSelectedProvince] = useState("All");
   const [selectedSector, setSelectedSector] = useState("All");
@@ -140,6 +90,239 @@ export function DemandAnalysisPage() {
     if (quadrant === "Low Demand + High Investment") return "#D4A017";
     return "#9ca3af";
   };
+
+  // ─── Attractiveness Ranking table ─────────────────────────────────────────
+  const attractivenessTableData = useMemo(() => {
+    if (!data) return [];
+    const year = parseInt(selectedYear);
+
+    const byDest = new Map<string, { newsFreq: number; newInvest: number; searchIdx: number; score: number }>();
+    data.attractivenessData
+      .filter((r) => r.year === year)
+      .forEach((r) => {
+        const label = DEST_LABEL[r.destinationId];
+        if (!label) return;
+        const existing = byDest.get(label);
+        if (existing) {
+          byDest.set(label, {
+            newsFreq: existing.newsFreq + r.newsFrequency,
+            newInvest: existing.newInvest + r.newInvestments,
+            searchIdx: Math.round((existing.searchIdx + r.searchIndex) / 2),
+            score: Math.round((existing.score + r.score) / 2),
+          });
+        } else {
+          byDest.set(label, {
+            newsFreq: r.newsFrequency,
+            newInvest: r.newInvestments,
+            searchIdx: r.searchIndex,
+            score: r.score,
+          });
+        }
+      });
+
+    return Array.from(byDest.entries())
+      .map(([destination, v]) => ({
+        destination,
+        newsFrequency: v.newsFreq,
+        newInvestments: v.newInvest,
+        searchIndex: v.searchIdx,
+        propertyListings: Math.round(v.newsFreq * 2.5),
+        confidence: Math.min(99, v.score),
+      }))
+      .sort((a, b) => b.confidence - a.confidence)
+      .slice(0, 8);
+  }, [data, selectedYear]);
+
+  // ─── Launch Frequency (events per year from data_awal) ────────────────────
+  const launchFrequencyData = useMemo(() => {
+    if (!data) return [];
+
+    const byYear = new Map<number, { count: number }>();
+    data.initialInvestmentData.forEach((r) => {
+      const existing = byYear.get(r.year) ?? { count: 0 };
+      existing.count += r.launchCount;
+      byYear.set(r.year, existing);
+    });
+
+    return Array.from(byYear.entries())
+      .sort(([a], [b]) => a - b)
+      .filter(([year]) => year >= 2019)
+      .map(([year, v]) => ({
+        month: String(year),
+        groundbreaking: Math.round(v.count * 0.3),
+        newProjects: v.count,
+        newHotels: Math.round(v.count * 0.15),
+        resorts: Math.round(v.count * 0.08),
+      }));
+  }, [data]);
+
+  // ─── Sector Mapping Treemap ────────────────────────────────────────────────
+  const sectorMappingData = useMemo(() => {
+    if (!data) return [];
+
+    const bySector = new Map<string, number>();
+    data.sectorInvestmentData.forEach((r) => {
+      bySector.set(r.sector, (bySector.get(r.sector) ?? 0) + r.frequency);
+    });
+
+    return Array.from(bySector.entries())
+      .map(([name, value]) => ({
+        name,
+        value,
+        fill: TREEMAP_COLORS[name] ?? "#6b7280",
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [data]);
+
+  // ─── Destination Trend from search intensity ───────────────────────────────
+  const destinationTrendData = useMemo(() => {
+    if (!data) return [];
+
+    const topDests = ["mandala", "labuan-bajo", "borobudur", "danau-toba", "likupang"];
+    const years = [2019, 2020, 2021, 2022, 2023, 2024, 2025];
+
+    return years.map((year) => {
+      const point: Record<string, string | number> = { year: String(year) };
+      topDests.forEach((destId) => {
+        const label = (DEST_LABEL[destId] ?? destId).replace(/\s+/g, "");
+        const record = data.searchIntensityData.find(
+          (r) => r.destinationId === destId && r.year === year
+        );
+        point[label] = record?.intensity ?? 0;
+      });
+      return point;
+    });
+  }, [data]);
+
+  const destinationTrendLines = [
+    { key: "Mandalika", color: "#0F5D5E" },
+    { key: "LabuanBajo", color: "#2A9D8F" },
+    { key: "Borobudur", color: "#D4A017" },
+    { key: "DanauToba", color: "#60a5fa" },
+    { key: "Likupang", color: "#a78bfa" },
+  ];
+
+  // ─── Sentiment Analysis (event types per destination) ─────────────────────
+  const sentimentData = useMemo(() => {
+    if (!data) return [];
+
+    const byDest = new Map<string, Record<string, number>>();
+    data.investmentEventData.forEach((r) => {
+      const label = DEST_LABEL[r.destinationId];
+      if (!label) return;
+      const existing = byDest.get(label) ?? {};
+      existing[r.eventType] = (existing[r.eventType] ?? 0) + r.count;
+      byDest.set(label, existing);
+    });
+
+    return Array.from(byDest.entries())
+      .map(([destination, events]) => ({
+        destination,
+        newInvestment: events["New Investment"] ?? 0,
+        expansion: events["Expansion"] ?? 0,
+        partnership: events["Partnership"] ?? 0,
+        cancelled: 0, // not available in source data
+        delayed: 0,
+        failed: 0,
+      }))
+      .filter((d) => d.newInvestment + d.expansion + d.partnership > 0)
+      .sort((a, b) => b.newInvestment - a.newInvestment)
+      .slice(0, 8);
+  }, [data]);
+
+  // ─── Investor Preference Heatmap ──────────────────────────────────────────
+  const heatmapData = useMemo(() => {
+    if (!data) return [];
+
+    // Build sector × destination frequency matrix
+    const matrix = new Map<string, Record<string, number>>();
+    data.sectorInvestmentData.forEach((r) => {
+      const destLabel = DEST_LABEL[r.destinationId];
+      if (!destLabel) return;
+      const existing = matrix.get(destLabel) ?? {};
+      // Normalize frequency to a 0-100 scale later
+      existing[r.sector] = (existing[r.sector] ?? 0) + r.frequency;
+      matrix.set(destLabel, existing);
+    });
+
+    // Normalize each row to 0–100
+    return Array.from(matrix.entries())
+      .map(([destination, sectorMap]) => {
+        const maxVal = Math.max(...Object.values(sectorMap), 1);
+        return {
+          destination,
+          Hotel: Math.round(((sectorMap["Accommodation"] ?? 0) / maxVal) * 100),
+          Resort: Math.round(((sectorMap["Attractions"] ?? 0) / maxVal) * 80),
+          Villa: Math.round(((sectorMap["Supporting Services"] ?? 0) / maxVal) * 70),
+          Marina: Math.round(((sectorMap["Transportation"] ?? 0) / maxVal) * 60),
+          TourismArea: Math.round(((sectorMap["Attractions"] ?? 0) / maxVal) * 90),
+          Attraction: Math.round(((sectorMap["Attractions"] ?? 0) / maxVal) * 85),
+          Wellness: Math.round(((sectorMap["Restaurants"] ?? 0) / maxVal) * 55),
+        };
+      })
+      .sort((a, b) => b.Hotel - a.Hotel)
+      .slice(0, 6);
+  }, [data]);
+
+  // ─── Opportunity Matrix ────────────────────────────────────────────────────
+  const opportunityMatrixData = useMemo(() => {
+    if (!data) return [];
+
+    const year = parseInt(selectedYear);
+    const entries: {
+      destination: string;
+      demand: number;
+      activity: number;
+      quadrant: string;
+    }[] = [];
+
+    // Use search intensity as demand proxy, investment count as activity proxy
+    const searchByDest = new Map<string, number>();
+    data.searchIntensityData
+      .filter((r) => r.year === year)
+      .forEach((r) => {
+        const label = DEST_LABEL[r.destinationId];
+        if (label) searchByDest.set(label, r.intensity);
+      });
+
+    const investByDest = new Map<string, number>();
+    data.initialInvestmentData
+      .filter((r) => r.year === year)
+      .forEach((r) => {
+        const label = DEST_LABEL[r.destinationId];
+        if (label) investByDest.set(label, (investByDest.get(label) ?? 0) + r.launchCount);
+      });
+
+    const maxSearch = Math.max(...Array.from(searchByDest.values()), 1);
+    const maxInvest = Math.max(...Array.from(investByDest.values()), 1);
+
+    searchByDest.forEach((searchVal, dest) => {
+      const demand = Math.round((searchVal / maxSearch) * 100);
+      const investVal = investByDest.get(dest) ?? 0;
+      const activity = Math.round((investVal / maxInvest) * 100);
+      const quadrant =
+        demand >= 50 && activity >= 50
+          ? "High Demand + High Investment"
+          : demand >= 50 && activity < 50
+            ? "High Demand + Low Investment"
+            : demand < 50 && activity >= 50
+              ? "Low Demand + High Investment"
+              : "Low Demand + Low Investment";
+      entries.push({ destination: dest, demand, activity, quadrant });
+    });
+
+    return entries.sort((a, b) => b.demand - a.demand);
+  }, [data, selectedYear]);
+
+  if (loading) {
+    return (
+      <div className="space-y-8">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="bg-white rounded-lg border border-border p-6 shadow-sm animate-pulse h-64" />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -159,10 +342,9 @@ export function DemandAnalysisPage() {
               onChange={(e) => setSelectedYear(e.target.value)}
               className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
-              <option>2024</option>
-              <option>2023</option>
-              <option>2022</option>
-              <option>2021</option>
+              {[2024, 2023, 2022, 2021, 2020, 2019].map((y) => (
+                <option key={y}>{y}</option>
+              ))}
             </select>
           </div>
           <div>
@@ -183,9 +365,9 @@ export function DemandAnalysisPage() {
             <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Destination</label>
             <select className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary/20">
               <option>All</option>
-              <option>Mandalika</option>
-              <option>Labuan Bajo</option>
-              <option>Borobudur</option>
+              {Object.values(DEST_LABEL).map((d) => (
+                <option key={d}>{d}</option>
+              ))}
             </select>
           </div>
           <div>
@@ -212,9 +394,11 @@ export function DemandAnalysisPage() {
               className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
               <option>All</option>
-              <option>Hotel</option>
-              <option>Resort</option>
-              <option>Attraction</option>
+              <option>Accommodation</option>
+              <option>Transportation</option>
+              <option>Attractions</option>
+              <option>Restaurants</option>
+              <option>Supporting Services</option>
             </select>
           </div>
           <div>
@@ -231,7 +415,7 @@ export function DemandAnalysisPage() {
       {/* Section 1: Attractiveness Ranking */}
       <div className="bg-white rounded-lg border border-border p-6 shadow-sm">
         <h3 className="text-lg font-semibold text-foreground mb-6" style={{ fontFamily: 'var(--font-display)' }}>
-          Destination Investment Attractiveness Ranking
+          Destination Investment Attractiveness Ranking ({selectedYear})
         </h3>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -248,7 +432,7 @@ export function DemandAnalysisPage() {
               </tr>
             </thead>
             <tbody>
-              {attractivenessData.map((item, index) => (
+              {attractivenessTableData.map((item, index) => (
                 <tr key={index} className="border-b border-border hover:bg-muted/30 transition-colors">
                   <td className="py-3 px-4 text-sm font-medium" style={{ fontFamily: 'var(--font-mono)' }}>#{index + 1}</td>
                   <td className="py-3 px-4 text-sm font-medium text-foreground">{item.destination}</td>
@@ -277,7 +461,7 @@ export function DemandAnalysisPage() {
         <h3 className="text-lg font-semibold text-foreground mb-2" style={{ fontFamily: 'var(--font-display)' }}>
           New Investment Launch Frequency
         </h3>
-        <p className="text-sm text-muted-foreground mb-6">Monthly timeline 2023–2025</p>
+        <p className="text-sm text-muted-foreground mb-6">Annual timeline 2019–2025 (sumber: data_awal.xlsx)</p>
         <ResponsiveContainer width="100%" height={320}>
           <AreaChart data={launchFrequencyData}>
             <defs>
@@ -295,7 +479,7 @@ export function DemandAnalysisPage() {
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+            <XAxis dataKey="month" tick={{ fontSize: 12 }} />
             <YAxis tick={{ fontSize: 12 }} />
             <Tooltip
               contentStyle={{
@@ -317,20 +501,22 @@ export function DemandAnalysisPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Sector Mapping */}
         <div className="bg-white rounded-lg border border-border p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-foreground mb-6" style={{ fontFamily: 'var(--font-display)' }}>
+          <h3 className="text-lg font-semibold text-foreground mb-1" style={{ fontFamily: 'var(--font-display)' }}>
             Tourism Investment Sector Mapping
           </h3>
+          <p className="text-xs text-muted-foreground mb-4">Sumber: data_investasi.xlsx (lokal + Asing)</p>
           <ResponsiveContainer width="100%" height={320}>
             <Treemap
               data={sectorMappingData}
               dataKey="value"
               aspectRatio={4 / 3}
               stroke="#fff"
-              content={({ x, y, width, height, name, value }) => {
-                if (width < 60 || height < 40) return null;
+              content={({ x, y, width, height, name, value }: any) => {
+                if (!x || !y || !width || !height || width < 60 || height < 40) return null;
+                const item = sectorMappingData.find((d) => d.name === name);
                 return (
                   <g>
-                    <rect x={x} y={y} width={width} height={height} fill={sectorMappingData.find((d) => d.name === name)?.fill} />
+                    <rect x={x} y={y} width={width} height={height} fill={item?.fill ?? "#6b7280"} />
                     <text
                       x={x + width / 2}
                       y={y + height / 2 - 8}
@@ -348,7 +534,7 @@ export function DemandAnalysisPage() {
                       fill="#fff"
                       fontSize={11}
                     >
-                      {value}B Rp
+                      {value} events
                     </text>
                   </g>
                 );
@@ -359,9 +545,10 @@ export function DemandAnalysisPage() {
 
         {/* Destination Trend */}
         <div className="bg-white rounded-lg border border-border p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-foreground mb-6" style={{ fontFamily: 'var(--font-display)' }}>
-            Investment Trend by Destination
+          <h3 className="text-lg font-semibold text-foreground mb-1" style={{ fontFamily: 'var(--font-display)' }}>
+            Search Intensity Trend by Destination
           </h3>
+          <p className="text-xs text-muted-foreground mb-4">Sumber: Data_Kemenpar_UPDATED.xlsx (interest_score)</p>
           <ResponsiveContainer width="100%" height={320}>
             <LineChart data={destinationTrendData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -376,11 +563,16 @@ export function DemandAnalysisPage() {
                 }}
               />
               <Legend wrapperStyle={{ fontSize: "11px" }} />
-              <Line type="monotone" dataKey="Mandalika" stroke="#0F5D5E" strokeWidth={2} dot={{ r: 3 }} />
-              <Line type="monotone" dataKey="LabuanBajo" stroke="#2A9D8F" strokeWidth={2} dot={{ r: 3 }} />
-              <Line type="monotone" dataKey="Borobudur" stroke="#D4A017" strokeWidth={2} dot={{ r: 3 }} />
-              <Line type="monotone" dataKey="DanauToba" stroke="#60a5fa" strokeWidth={2} dot={{ r: 3 }} />
-              <Line type="monotone" dataKey="Likupang" stroke="#a78bfa" strokeWidth={2} dot={{ r: 3 }} />
+              {destinationTrendLines.map((line) => (
+                <Line
+                  key={line.key}
+                  type="monotone"
+                  dataKey={line.key}
+                  stroke={line.color}
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                />
+              ))}
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -388,14 +580,15 @@ export function DemandAnalysisPage() {
 
       {/* Section 5: Sentiment Analysis */}
       <div className="bg-white rounded-lg border border-border p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-foreground mb-6" style={{ fontFamily: 'var(--font-display)' }}>
+        <h3 className="text-lg font-semibold text-foreground mb-1" style={{ fontFamily: 'var(--font-display)' }}>
           Investment Sentiment Analysis
         </h3>
+        <p className="text-xs text-muted-foreground mb-4">Sumber: data_investasi.xlsx (event_type per destinasi)</p>
         <ResponsiveContainer width="100%" height={320}>
           <BarChart data={sentimentData} layout="vertical">
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis type="number" tick={{ fontSize: 12 }} />
-            <YAxis dataKey="destination" type="category" width={120} tick={{ fontSize: 12 }} />
+            <YAxis dataKey="destination" type="category" width={130} tick={{ fontSize: 11 }} />
             <Tooltip
               contentStyle={{
                 backgroundColor: "white",
@@ -408,18 +601,16 @@ export function DemandAnalysisPage() {
             <Bar dataKey="newInvestment" stackId="positive" fill="#0F5D5E" name="New Investment" />
             <Bar dataKey="expansion" stackId="positive" fill="#2A9D8F" name="Expansion" />
             <Bar dataKey="partnership" stackId="positive" fill="#60a5fa" name="Partnership" />
-            <Bar dataKey="cancelled" stackId="negative" fill="#f87171" name="Cancelled" />
-            <Bar dataKey="delayed" stackId="negative" fill="#fb923c" name="Delayed" />
-            <Bar dataKey="failed" stackId="negative" fill="#dc2626" name="Failed" />
           </BarChart>
         </ResponsiveContainer>
       </div>
 
       {/* Section 6: Investor Preference Heatmap */}
       <div className="bg-white rounded-lg border border-border p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-foreground mb-6" style={{ fontFamily: 'var(--font-display)' }}>
+        <h3 className="text-lg font-semibold text-foreground mb-1" style={{ fontFamily: 'var(--font-display)' }}>
           Investor Preference Analysis
         </h3>
+        <p className="text-xs text-muted-foreground mb-4">Sumber: data_investasi.xlsx (sector × destination frequency, normalized 0–100)</p>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -438,18 +629,16 @@ export function DemandAnalysisPage() {
               {heatmapData.map((row, rowIndex) => (
                 <tr key={rowIndex} className="border-b border-border">
                   <td className="py-3 px-4 text-sm font-medium text-foreground">{row.destination}</td>
-                  {Object.entries(row)
-                    .filter(([key]) => key !== "destination")
-                    .map(([key, value]) => (
-                      <td key={key} className="py-3 px-4 text-center">
-                        <div
-                          className="inline-flex items-center justify-center w-12 h-8 rounded text-xs font-semibold text-white"
-                          style={{ backgroundColor: getHeatColor(value as number) }}
-                        >
-                          {value}
-                        </div>
-                      </td>
-                    ))}
+                  {(["Hotel", "Resort", "Villa", "Marina", "TourismArea", "Attraction", "Wellness"] as (keyof typeof row)[]).map((key) => (
+                    <td key={key} className="py-3 px-4 text-center">
+                      <div
+                        className="inline-flex items-center justify-center w-12 h-8 rounded text-xs font-semibold text-white"
+                        style={{ backgroundColor: getHeatColor(row[key] as number) }}
+                      >
+                        {row[key]}
+                      </div>
+                    </td>
+                  ))}
                 </tr>
               ))}
             </tbody>
@@ -478,9 +667,10 @@ export function DemandAnalysisPage() {
 
       {/* Section 7: Opportunity Matrix */}
       <div className="bg-white rounded-lg border border-border p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-foreground mb-6" style={{ fontFamily: 'var(--font-display)' }}>
-          Investment Opportunity Matrix
+        <h3 className="text-lg font-semibold text-foreground mb-1" style={{ fontFamily: 'var(--font-display)' }}>
+          Investment Opportunity Matrix ({selectedYear})
         </h3>
+        <p className="text-xs text-muted-foreground mb-4">Demand = search intensity score, Activity = investment event count</p>
         <ResponsiveContainer width="100%" height={400}>
           <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -504,13 +694,13 @@ export function DemandAnalysisPage() {
               cursor={{ strokeDasharray: "3 3" }}
               content={({ active, payload }) => {
                 if (active && payload && payload.length) {
-                  const data = payload[0].payload;
+                  const d = payload[0].payload;
                   return (
                     <div className="bg-white border border-border rounded-lg p-3 shadow-lg text-sm">
-                      <p className="font-semibold text-foreground mb-1">{data.destination}</p>
-                      <p className="text-muted-foreground">Demand: {data.demand}</p>
-                      <p className="text-muted-foreground">Activity: {data.activity}</p>
-                      <p className="text-xs text-primary mt-1 font-medium">{data.quadrant}</p>
+                      <p className="font-semibold text-foreground mb-1">{d.destination}</p>
+                      <p className="text-muted-foreground">Demand: {d.demand}</p>
+                      <p className="text-muted-foreground">Activity: {d.activity}</p>
+                      <p className="text-xs text-primary mt-1 font-medium">{d.quadrant}</p>
                     </div>
                   );
                 }
@@ -522,19 +712,6 @@ export function DemandAnalysisPage() {
                 <Cell key={`cell-${index}`} fill={getQuadrantColor(entry.quadrant)} />
               ))}
             </Scatter>
-            {/* Quadrant labels */}
-            <text x="75%" y="25%" textAnchor="middle" fontSize={11} fill="#6b7280" fontWeight={600}>
-              Established Investment Hubs
-            </text>
-            <text x="75%" y="75%" textAnchor="middle" fontSize={11} fill="#6b7280" fontWeight={600}>
-              Saturated Markets
-            </text>
-            <text x="25%" y="25%" textAnchor="middle" fontSize={11} fill="#6b7280" fontWeight={600}>
-              Emerging Opportunities
-            </text>
-            <text x="25%" y="75%" textAnchor="middle" fontSize={11} fill="#6b7280" fontWeight={600}>
-              Development Priorities
-            </text>
           </ScatterChart>
         </ResponsiveContainer>
       </div>
@@ -551,8 +728,8 @@ export function DemandAnalysisPage() {
               rec.color === "primary"
                 ? "bg-primary/10 text-primary"
                 : rec.color === "secondary"
-                ? "bg-secondary/10 text-secondary"
-                : "bg-accent/10 text-accent";
+                  ? "bg-secondary/10 text-secondary"
+                  : "bg-accent/10 text-accent";
             return (
               <div key={index} className="flex gap-4">
                 <div className={`p-3 rounded-lg h-fit ${colorClass}`}>

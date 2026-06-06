@@ -21,9 +21,7 @@ interface Props {
 function InvestorFrequencyBarComponent({ data, compact }: Props) {
   if (!data.length) return <ChartEmptyState message="No investor data for selected category." />;
 
-  const chartHeight = compact
-    ? Math.max(200, data.length * 28 + 48)
-    : Math.max(220, data.length * 32 + 56);
+  const chartHeight = 360;
 
   return (
     <ResponsiveContainer width="100%" height={chartHeight}>

@@ -6,7 +6,7 @@ import {
   ZoomableGroup,
 } from "react-simple-maps";
 import { X, Building2, Layers } from "lucide-react";
-import type { CountryMapPoint, CountryDetailData } from "../../../data/types";
+import type { CountryMapPoint, CountryDetailData, CountryInvestmentRecord, InvestorRecord } from "../../../data/types";
 import { CHART_COLORS } from "../../../data/constants";
 import { processCountryDetail } from "../../../data/processors/investorAnalytics";
 import { ChartEmptyState } from "../ChartEmptyState";
@@ -22,6 +22,8 @@ const NAME_ALIASES: Record<string, string> = {
 interface Props {
   data: CountryMapPoint[];
   year: string;
+  countryInvestmentData: CountryInvestmentRecord[];
+  investorData: InvestorRecord[];
 }
 
 function getFillColor(intensity: number, hasData: boolean, selected: boolean): string {
@@ -110,7 +112,7 @@ function CountryDetailPanel({
   );
 }
 
-function WorldInvestmentMapComponent({ data, year }: Props) {
+function WorldInvestmentMapComponent({ data, year, countryInvestmentData, investorData }: Props) {
   const [hovered, setHovered] = useState<CountryMapPoint | null>(null);
   const [selected, setSelected] = useState<CountryMapPoint | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
@@ -122,8 +124,8 @@ function WorldInvestmentMapComponent({ data, year }: Props) {
   }, [data]);
 
   const detail = useMemo(
-    () => (selected ? processCountryDetail(selected.country, year) : null),
-    [selected, year],
+    () => (selected ? processCountryDetail(countryInvestmentData, investorData, selected.country, year) : null),
+    [selected, year, countryInvestmentData, investorData],
   );
 
   if (!data.length) {
@@ -157,8 +159,8 @@ function WorldInvestmentMapComponent({ data, year }: Props) {
       >
         <ZoomableGroup center={[20, 10]} zoom={1}>
           <Geographies geography={GEO_URL}>
-            {({ geographies }) =>
-              geographies.map((geo) => {
+            {({ geographies }: { geographies: any[] }) =>
+              geographies.map((geo: any) => {
                 const name = geo.properties.name as string;
                 const countryData = resolveCountry(name);
                 const intensity = countryData?.intensity ?? 0;
@@ -180,7 +182,7 @@ function WorldInvestmentMapComponent({ data, year }: Props) {
                       },
                       pressed: { outline: "none" },
                     }}
-                    onMouseEnter={(e) => {
+                    onMouseEnter={(e: React.MouseEvent) => {
                       if (!countryData) return;
                       setHovered(countryData);
                       const rect = (e.target as SVGElement).getBoundingClientRect();

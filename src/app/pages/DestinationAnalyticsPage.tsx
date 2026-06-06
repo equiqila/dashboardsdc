@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { DESTINATIONS, YEARS } from "../data/constants";
+import { useExcelData } from "../data/ExcelDataContext";
 import {
   processTouristArrivals,
   processArrivalsVsInvestment,
@@ -27,6 +28,8 @@ const destinationOptions = [
 const yearOptions = YEARS.map((y) => ({ label: y, value: y }));
 
 export function DestinationAnalyticsPage() {
+  const { data, loading: dataLoading } = useExcelData();
+
   const [arrivalsDest, setArrivalsDest] = useState("All");
   const [scatterYear, setScatterYear] = useState("2024");
   const [rankingYear, setRankingYear] = useState("2024");
@@ -42,34 +45,68 @@ export function DestinationAnalyticsPage() {
   const loadingEvent = useChartLoading([eventDest]);
 
   const touristArrivals = useMemo(
-    () => processTouristArrivals(arrivalsDest, "All"),
-    [arrivalsDest],
+    () =>
+      data
+        ? processTouristArrivals(data.touristArrivalsData, arrivalsDest, "All")
+        : [],
+    [arrivalsDest, data],
   );
 
   const arrivalsVsInvestment = useMemo(
-    () => processArrivalsVsInvestment("All", scatterYear, "All"),
-    [scatterYear],
+    () =>
+      data
+        ? processArrivalsVsInvestment(
+          data.touristArrivalsData,
+          data.initialInvestmentData,
+          "All",
+          scatterYear,
+          "All",
+        )
+        : [],
+    [scatterYear, data],
   );
 
   const attractivenessRanking = useMemo(
-    () => processAttractivenessRanking(rankingYear, "All"),
-    [rankingYear],
+    () =>
+      data
+        ? processAttractivenessRanking(data.attractivenessData, rankingYear, "All")
+        : [],
+    [rankingYear, data],
   );
 
   const launchFrequency = useMemo(
-    () => processLaunchFrequencyMulti(launchDest),
-    [launchDest],
+    () =>
+      data
+        ? processLaunchFrequencyMulti(data.initialInvestmentData, launchDest)
+        : { data: [], lines: [] },
+    [launchDest, data],
   );
 
   const sectorTreemap = useMemo(
-    () => processSectorTreemap(sectorDest, "All"),
-    [sectorDest],
+    () =>
+      data
+        ? processSectorTreemap(data.sectorInvestmentData, sectorDest, "All")
+        : [],
+    [sectorDest, data],
   );
 
   const eventTypeStacked = useMemo(
-    () => processEventTypeStacked(eventDest, "All"),
-    [eventDest],
+    () =>
+      data
+        ? processEventTypeStacked(data.investmentEventData, eventDest, "All")
+        : [],
+    [eventDest, data],
   );
+
+  if (dataLoading) {
+    return (
+      <div className="space-y-6">
+        {[320, 320, 360, 340, 320, 400].map((h, i) => (
+          <ChartLoadingState key={i} height={h} />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -142,7 +179,7 @@ export function DestinationAnalyticsPage() {
         </ChartCard>
       </div>
 
-      {/* Row 3: treemap — 13 destinasi saat All */}
+      {/* Row 3: treemap */}
       <ChartCard
         title="Pemetaan Sektor Pariwisata"
         subtitle={sectorDest === "All" ? "13 Destinasi Prioritas (10 DPP + 3 DPR)" : "Sektor per destinasi"}
@@ -157,7 +194,7 @@ export function DestinationAnalyticsPage() {
         {loadingSector ? <ChartLoadingState height={320} /> : <SectorTreemapChart data={sectorTreemap} />}
       </ChartCard>
 
-      {/* Row 4: jenis investasi — 13 destinasi */}
+      {/* Row 4: jenis investasi */}
       <ChartCard
         title="Jenis Investasi"
         action={
