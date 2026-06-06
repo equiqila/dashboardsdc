@@ -1,22 +1,14 @@
 import pandas as pd
+import sys
 
-files = {
-    'Data_Kemenpar_UPDATED.xlsx': None,
-    'data_jumlah_wisatawan.xlsx': None,
-}
+path = r"c:\Users\hp\Documents\kemenpar_2\public\Data_Dashboard.xlsx"
+sheet = sys.argv[1] if len(sys.argv) > 1 else "Page1_jumlahwisatawan"
 
-for fname, _ in files.items():
-    print(f'\n{"="*60}')
-    print(f'FILE: {fname}')
-    print('='*60)
-    try:
-        xl = pd.ExcelFile(fname, engine='openpyxl')
-        print(f'Sheets: {xl.sheet_names}')
-        for sname in xl.sheet_names:
-            print(f'\n  --- Sheet: {sname} ---')
-            df = xl.parse(sname, nrows=5)
-            print(f'  Columns: {list(df.columns)}')
-            print(df.to_string(index=False, max_cols=10))
-        xl.close()
-    except Exception as e:
-        print(f'  ERROR: {e}')
+try:
+    df = pd.read_excel(path, sheet_name=sheet)
+    print(f"=== Sheet: {sheet} ===")
+    print(f"Columns: {list(df.columns)}")
+    print("\nSample Data (First 20 rows):")
+    print(df.head(20).to_string(index=False))
+except Exception as e:
+    print(f"Error reading sheet {sheet}: {e}")

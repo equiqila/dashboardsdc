@@ -11,7 +11,7 @@ interface ChartCardProps {
 export function ChartCard({ title, subtitle, children, action, className }: ChartCardProps) {
   return (
     <div
-      className={`bg-white rounded-lg border border-border p-6 shadow-sm flex flex-col ${className ?? ""}`}
+      className={`bg-white rounded-lg border border-border p-6 shadow-sm flex flex-col overflow-hidden ${className ?? ""}`}
     >
       <div className="flex items-start justify-between mb-6 gap-4">
         <div>

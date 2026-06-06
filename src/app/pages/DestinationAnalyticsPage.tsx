@@ -1,211 +1,143 @@
-import { useMemo, useState } from "react";
-import { DESTINATIONS, YEARS } from "../data/constants";
+import { useState, useMemo } from "react";
 import { useExcelData } from "../data/ExcelDataContext";
-import {
-  processTouristArrivals,
-  processArrivalsVsInvestment,
-  processAttractivenessRanking,
-  processLaunchFrequencyMulti,
-  processSectorTreemap,
-  processEventTypeStacked,
-} from "../data/processors/destinationAnalytics";
 import { ChartCard } from "../components/analytics/ChartCard";
 import { ChartFilterSelect } from "../components/analytics/ChartFilterSelect";
 import { ChartLoadingState } from "../components/analytics/ChartLoadingState";
-import { useChartLoading } from "../components/analytics/useChartLoading";
-import { TouristArrivalsLineChart } from "../components/analytics/charts/TouristArrivalsLineChart";
-import { ArrivalsVsInvestmentScatter } from "../components/analytics/charts/ArrivalsVsInvestmentScatter";
-import { AttractivenessRankingBar } from "../components/analytics/charts/AttractivenessRankingBar";
-import { InvestmentLaunchFrequencyArea } from "../components/analytics/charts/InvestmentLaunchFrequencyArea";
-import { SectorTreemapChart } from "../components/analytics/charts/SectorTreemapChart";
-import { EventTypeStackedBar } from "../components/analytics/charts/EventTypeStackedBar";
+import { TouristLineChart } from "../components/analytics/charts/TouristLineChart";
+import { WisatawanScatter } from "../components/analytics/charts/WisatawanScatter";
+import { AttractivenessBar } from "../components/analytics/charts/AttractivenessBar";
+import { NewInvestmentLaunchArea } from "../components/analytics/charts/NewInvestmentLaunchArea";
+import { SektorTreemap } from "../components/analytics/charts/SektorTreemap";
+import { InvestmentEventStackedBar } from "../components/analytics/charts/InvestmentEventStackedBar";
 
-const destinationOptions = [
-  { label: "Semua Destinasi", value: "All" },
-  ...DESTINATIONS.map((d) => ({ label: d.name, value: d.id })),
-];
-
-const yearOptions = YEARS.map((y) => ({ label: y, value: y }));
+type DppDprFilter = "Semua" | "DPP" | "DPR";
 
 export function DestinationAnalyticsPage() {
-  const { data, loading: dataLoading } = useExcelData();
+  const { data, loading } = useExcelData();
 
-  const [arrivalsDest, setArrivalsDest] = useState("All");
-  const [scatterYear, setScatterYear] = useState("2024");
-  const [rankingYear, setRankingYear] = useState("2024");
-  const [launchDest, setLaunchDest] = useState("All");
-  const [sectorDest, setSectorDest] = useState("All");
-  const [eventDest, setEventDest] = useState("All");
+  // Filters
+  const [touristFilter, setTouristFilter] = useState<DppDprFilter>("Semua");
+  const [scatterFilter, setScatterFilter] = useState<string>("Semua");
+  const [attractYear, setAttractYear] = useState<string>("Semua");
+  const [launchFilter, setLaunchFilter] = useState<string>("Semua");
+  const [sektorFilter, setSektorFilter] = useState<DppDprFilter>("Semua");
 
-  const loadingArrivals = useChartLoading([arrivalsDest]);
-  const loadingScatter = useChartLoading([scatterYear]);
-  const loadingRanking = useChartLoading([rankingYear]);
-  const loadingLaunch = useChartLoading([launchDest]);
-  const loadingSector = useChartLoading([sectorDest]);
-  const loadingEvent = useChartLoading([eventDest]);
+  // Destination options from data
+  const destinationOptions = useMemo(() => {
+    if (!data) return [];
+    const dests = [...new Set(data.wisatawanInvestment.map((r) => r.provinsi))].sort();
+    return [{ label: "Semua Destinasi", value: "Semua" }, ...dests.map((d) => ({ label: d, value: d }))];
+  }, [data]);
 
-  const touristArrivals = useMemo(
-    () =>
-      data
-        ? processTouristArrivals(data.touristArrivalsData, arrivalsDest, "All")
-        : [],
-    [arrivalsDest, data],
-  );
+  const launchOptions = useMemo(() => {
+    if (!data) return [];
+    const dests = [...new Set(data.newInvestmentLaunch.map((r) => r.destinasi))].sort();
+    return [{ label: "Semua Destinasi", value: "Semua" }, ...dests.map((d) => ({ label: d, value: d }))];
+  }, [data]);
 
-  const arrivalsVsInvestment = useMemo(
-    () =>
-      data
-        ? processArrivalsVsInvestment(
-          data.touristArrivalsData,
-          data.initialInvestmentData,
-          "All",
-          scatterYear,
-          "All",
-        )
-        : [],
-    [scatterYear, data],
-  );
+  const yearOptions = useMemo(() => {
+    if (!data) return [];
+    const years = [...new Set(data.attractiveness.map((r) => r.tahun))].sort();
+    return [{ label: "Semua Tahun", value: "Semua" }, ...years.map((y) => ({ label: String(y), value: String(y) }))];
+  }, [data]);
 
-  const attractivenessRanking = useMemo(
-    () =>
-      data
-        ? processAttractivenessRanking(data.attractivenessData, rankingYear, "All")
-        : [],
-    [rankingYear, data],
-  );
+  const dppDprOptions = [
+    { label: "Semua", value: "Semua" },
+    { label: "DPP", value: "DPP" },
+    { label: "DPR", value: "DPR" },
+  ];
 
-  const launchFrequency = useMemo(
-    () =>
-      data
-        ? processLaunchFrequencyMulti(data.initialInvestmentData, launchDest)
-        : { data: [], lines: [] },
-    [launchDest, data],
-  );
-
-  const sectorTreemap = useMemo(
-    () =>
-      data
-        ? processSectorTreemap(data.sectorInvestmentData, sectorDest, "All")
-        : [],
-    [sectorDest, data],
-  );
-
-  const eventTypeStacked = useMemo(
-    () =>
-      data
-        ? processEventTypeStacked(data.investmentEventData, eventDest, "All")
-        : [],
-    [eventDest, data],
-  );
-
-  if (dataLoading) {
-    return (
-      <div className="space-y-6">
-        {[320, 320, 360, 340, 320, 400].map((h, i) => (
-          <ChartLoadingState key={i} height={h} />
-        ))}
-      </div>
-    );
-  }
+  if (loading) return <div className="p-8"><ChartLoadingState height={400} /></div>;
 
   return (
-    <div className="space-y-6">
-      {/* Row 1: 60% + 40% */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <ChartCard
-          className="lg:col-span-3"
-          title="Jumlah Wisatawan"
-          action={
-            <ChartFilterSelect
-              value={arrivalsDest}
-              options={destinationOptions}
-              onChange={setArrivalsDest}
-            />
-          }
-        >
-          {loadingArrivals ? <ChartLoadingState /> : <TouristArrivalsLineChart data={touristArrivals} />}
-        </ChartCard>
-
-        <ChartCard
-          className="lg:col-span-2"
-          title="Jumlah Wisatawan vs New Investment"
-          action={
-            <ChartFilterSelect
-              value={scatterYear}
-              options={yearOptions}
-              onChange={setScatterYear}
-            />
-          }
-        >
-          {loadingScatter ? <ChartLoadingState height={320} /> : <ArrivalsVsInvestmentScatter data={arrivalsVsInvestment} />}
-        </ChartCard>
-      </div>
-
-      {/* Row 2: 40% ranking + 60% launch frequency */}
-      <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
-        <ChartCard
-          className="lg:col-span-4"
-          title="Peringkat Daya Tarik Investasi per Destinasi"
-          action={
-            <ChartFilterSelect
-              value={rankingYear}
-              options={yearOptions}
-              onChange={setRankingYear}
-            />
-          }
-        >
-          {loadingRanking ? <ChartLoadingState height={360} /> : <AttractivenessRankingBar data={attractivenessRanking} />}
-        </ChartCard>
-
-        <ChartCard
-          className="lg:col-span-6"
-          title="Frekuensi Peluncuran Investasi Baru"
-          action={
-            <ChartFilterSelect
-              value={launchDest}
-              options={destinationOptions}
-              onChange={setLaunchDest}
-            />
-          }
-        >
-          {loadingLaunch ? (
-            <ChartLoadingState height={340} />
-          ) : (
-            <InvestmentLaunchFrequencyArea
-              data={launchFrequency.data}
-              lines={launchFrequency.lines}
-            />
-          )}
-        </ChartCard>
-      </div>
-
-      {/* Row 3: treemap */}
+    <div className="space-y-6 p-6">
+      {/* Row 1: Tourist Line Chart (full width) */}
       <ChartCard
-        title="Pemetaan Sektor Pariwisata"
-        subtitle={sectorDest === "All" ? "13 Destinasi Prioritas (10 DPP + 3 DPR)" : "Sektor per destinasi"}
+        title="Tren Jumlah Wisatawan pada Destinasi Pariwisata Prioritas Indonesia (2019-2025)"
+        className="h-[500px]"
         action={
           <ChartFilterSelect
-            value={sectorDest}
-            options={destinationOptions}
-            onChange={setSectorDest}
+            label="Filter"
+            value={touristFilter}
+            options={dppDprOptions}
+            onChange={(v) => setTouristFilter(v as DppDprFilter)}
           />
         }
       >
-        {loadingSector ? <ChartLoadingState height={320} /> : <SectorTreemapChart data={sectorTreemap} />}
+        <TouristLineChart data={data?.touristRecords ?? []} filter={touristFilter} />
       </ChartCard>
 
-      {/* Row 4: jenis investasi */}
-      <ChartCard
-        title="Jenis Investasi"
-        action={
-          <ChartFilterSelect
-            value={eventDest}
-            options={destinationOptions}
-            onChange={setEventDest}
+      {/* Row 2: Scatter + Attractiveness */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ChartCard
+          title="Hubungan Jumlah Wisatawan dan Aktivitas Investasi Pariwisata"
+          className="h-[420px]"
+          action={
+            <ChartFilterSelect
+              value={scatterFilter}
+              options={destinationOptions}
+              onChange={setScatterFilter}
+            />
+          }
+        >
+          <WisatawanScatter data={data?.wisatawanInvestment ?? []} filter={scatterFilter} />
+        </ChartCard>
+
+        <ChartCard
+          title="Peringkat Daya Tarik Investasi per Destinasi"
+          className="h-[420px]"
+          action={
+            <ChartFilterSelect
+              value={attractYear}
+              options={yearOptions}
+              onChange={setAttractYear}
+            />
+          }
+        >
+          <AttractivenessBar
+            data={data?.attractiveness ?? []}
+            tahun={attractYear === "Semua" ? "Semua" : Number(attractYear)}
           />
-        }
+        </ChartCard>
+      </div>
+
+      {/* Row 3: Area + Treemap */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ChartCard
+          title="Frekuensi Peluncuran Investasi Baru"
+          className="h-[380px]"
+          action={
+            <ChartFilterSelect
+              value={launchFilter}
+              options={launchOptions}
+              onChange={setLaunchFilter}
+            />
+          }
+        >
+          <NewInvestmentLaunchArea data={data?.newInvestmentLaunch ?? []} filter={launchFilter} />
+        </ChartCard>
+
+        <ChartCard
+          title="Pemetaan Sektor Investasi Pariwisata"
+          className="h-[380px]"
+          action={
+            <ChartFilterSelect
+              value={sektorFilter}
+              options={dppDprOptions}
+              onChange={(v) => setSektorFilter(v as DppDprFilter)}
+            />
+          }
+        >
+          <SektorTreemap data={data?.sektorMapping ?? []} filter={sektorFilter} />
+        </ChartCard>
+      </div>
+
+      {/* Row 4: Stacked Bar (full width) */}
+      <ChartCard
+        title="Distribusi Aktivitas Investasi Pariwisata per Destinasi"
+        className="h-[440px]"
       >
-        {loadingEvent ? <ChartLoadingState height={400} /> : <EventTypeStackedBar data={eventTypeStacked} />}
+        <InvestmentEventStackedBar data={data?.investmentEvent ?? []} />
       </ChartCard>
     </div>
   );

@@ -1,196 +1,136 @@
-import { useMemo, useState } from "react";
-import type { InvestorCategory } from "../data/types";
-import { DESTINATIONS, YEARS } from "../data/constants";
+import { useState, useMemo } from "react";
 import { useExcelData } from "../data/ExcelDataContext";
-import {
-  processCountryMap,
-  processInvestorFrequency,
-  processInvestorSectorHeatmap,
-  processForeignDomesticPie,
-  processSearchIntensityTrend,
-} from "../data/processors/investorAnalytics";
 import { ChartCard } from "../components/analytics/ChartCard";
 import { ChartFilterSelect } from "../components/analytics/ChartFilterSelect";
 import { ChartLoadingState } from "../components/analytics/ChartLoadingState";
-import { useChartLoading } from "../components/analytics/useChartLoading";
 import { WorldInvestmentMap } from "../components/analytics/charts/WorldInvestmentMap";
-import { InvestorFrequencyBar } from "../components/analytics/charts/InvestorFrequencyBar";
-import { InvestorSectorHeatmap } from "../components/analytics/charts/InvestorSectorHeatmap";
-import { ForeignDomesticPie } from "../components/analytics/charts/ForeignDomesticPie";
-import { SearchIntensityMultiLine } from "../components/analytics/charts/SearchIntensityMultiLine";
+import { PerusahaanInvestorBar } from "../components/analytics/charts/PerusahaanInvestorBar";
+import { InvestorSektorHeatmap } from "../components/analytics/charts/InvestorSektorHeatmap";
+import { DominasiDonut } from "../components/analytics/charts/DominasiDonut";
+import { IntensitasPencarianLine } from "../components/analytics/charts/IntensitasPencarianLine";
 
-const yearOptions = YEARS.map((y) => ({ label: y, value: y }));
-
-const investorOptions = [
-  { label: "Semua", value: "All" },
-  { label: "Investor Dalam Negeri", value: "Domestic" },
-  { label: "Investor Asing", value: "Foreign" },
-];
-
-const destinationOptions = [
-  { label: "Semua Destinasi", value: "All" },
-  ...DESTINATIONS.map((d) => ({ label: `${d.name} (${d.type})`, value: d.id })),
-];
+const YEARS = ["2019", "2020", "2021", "2022", "2023", "2024", "2025", "2026"];
 
 export function InvestorAnalyticsPage() {
-  const { data, loading: dataLoading } = useExcelData();
+  const { data, loading } = useExcelData();
 
-  const [mapYear, setMapYear] = useState("2024");
-  const [frequencyCategory, setFrequencyCategory] = useState<InvestorCategory | "All">("All");
-  const [heatmapCategory, setHeatmapCategory] = useState<InvestorCategory | "All">("All");
-  const [pieYear, setPieYear] = useState("2024");
-  const [searchDest, setSearchDest] = useState("All");
+  // Filters
+  const [negaraTahun, setNegaraTahun] = useState<string>("Semua");
+  const [perusahaanFilter, setPerusahaanFilter] = useState<"Semua" | "Lokal" | "Asing">("Semua");
+  const [heatmapFilter, setHeatmapFilter] = useState<"Semua" | "Lokal" | "Asing">("Semua");
+  const [dominasiTahun, setDominasiTahun] = useState<number>(2024);
+  const [intensitasFilter, setIntensitasFilter] = useState<string>("Semua");
 
-  const loadingMap = useChartLoading([mapYear]);
-  const loadingFrequency = useChartLoading([frequencyCategory]);
-  const loadingHeatmap = useChartLoading([heatmapCategory]);
-  const loadingPie = useChartLoading([pieYear]);
-  const loadingSearch = useChartLoading([searchDest]);
+  const tahunOptions = [
+    { label: "Semua Tahun", value: "Semua" },
+    ...YEARS.map((y) => ({ label: y, value: y })),
+  ];
 
-  const countryMap = useMemo(
-    () => data ? processCountryMap(data.countryInvestmentData, mapYear) : [],
-    [mapYear, data],
-  );
+  const dominasiTahunOptions = YEARS
+    .filter((y) => Number(y) <= 2025)
+    .map((y) => ({ label: y, value: y }));
 
-  const investorFrequency = useMemo(
-    () => data ? processInvestorFrequency(data.investorData, frequencyCategory, "2024") : [],
-    [frequencyCategory, data],
-  );
+  const investorCategoryOptions = [
+    { label: "Semua", value: "Semua" },
+    { label: "Investor Dalam Negeri", value: "Lokal" },
+    { label: "Investor Asing", value: "Asing" },
+  ];
 
-  const heatmap = useMemo(
-    () => data ? processInvestorSectorHeatmap(data.investorData, heatmapCategory, "2024") : { cells: [], investors: [], maxValue: 0 },
-    [heatmapCategory, data],
-  );
+  const intensitasOptions = useMemo(() => {
+    if (!data) return [];
+    const dests = [...new Set(data.intensitasPencarian.map((r) => r.destination))].sort();
+    return [{ label: "Semua Destinasi", value: "Semua" }, ...dests.map((d) => ({ label: d, value: d }))];
+  }, [data]);
 
-  const foreignDomestic = useMemo(
-    () => data ? processForeignDomesticPie(data.investmentOpportunityData, pieYear) : [],
-    [pieYear, data],
-  );
-
-  const searchIntensity = useMemo(
-    () =>
-      data
-        ? processSearchIntensityTrend(
-          data.searchIntensityData,
-          searchDest === "All" ? DESTINATIONS.map((d) => d.id) : [searchDest],
-        )
-        : { data: [], lines: [] },
-    [searchDest, data],
-  );
-
-  if (dataLoading) {
-    return (
-      <div className="space-y-6">
-        <ChartLoadingState height={400} />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ChartLoadingState height={240} />
-          <ChartLoadingState height={360} />
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ChartLoadingState />
-          <ChartLoadingState height={320} />
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <div className="p-8"><ChartLoadingState height={400} /></div>;
 
   return (
-    <div className="space-y-6">
-      {/* Row 1: world map */}
+    <div className="space-y-6 p-6">
+      {/* Row 1: World Map */}
       <ChartCard
-        title="Negara Mana yang Investasi Paling Besar"
+        title="Peta Sebaran Negara Asal Investor Terbesar (PMA)"
+        subtitle="Analisis geospasial asal negara investor pada sektor pariwisata"
+        className="min-h-[620px] h-auto"
         action={
-          <ChartFilterSelect value={mapYear} options={yearOptions} onChange={setMapYear} />
+          <ChartFilterSelect
+            value={negaraTahun}
+            options={tahunOptions}
+            onChange={setNegaraTahun}
+          />
         }
       >
-        {loadingMap ? (
-          <ChartLoadingState height={400} />
-        ) : (
-          <WorldInvestmentMap
-            data={countryMap}
-            year={mapYear}
-            countryInvestmentData={data!.countryInvestmentData}
-            investorData={data!.investorData}
-          />
-        )}
+        <WorldInvestmentMap
+          negaraData={data?.negaraInvestor ?? []}
+          perusahaanData={data?.perusahaanInvestor ?? []}
+          hubunganSektorData={data?.hubunganInvestorSektor ?? []}
+          year={negaraTahun}
+        />
       </ChartCard>
 
-      {/* Row 2: frequency + heatmap side by side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard
-          title="Perusahaan dengan Frekuensi Investasi Paling Banyak"
-          className="h-full !pb-4"
-          action={
-            <ChartFilterSelect
-              value={frequencyCategory}
-              options={investorOptions}
-              onChange={(v) => setFrequencyCategory(v as InvestorCategory | "All")}
-            />
-          }
-        >
-          {loadingFrequency ? (
-            <ChartLoadingState height={320} />
-          ) : (
-            <InvestorFrequencyBar data={investorFrequency} compact />
-          )}
-        </ChartCard>
+      {/* Row 2: Perusahaan Bar (col-span-2) + Dominasi Donut (col-span-1) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <ChartCard
+            title="Perusahaan dengan Frekuensi Investasi Paling Banyak"
+            className="h-[480px]"
+            action={
+              <ChartFilterSelect
+                value={perusahaanFilter}
+                options={investorCategoryOptions}
+                onChange={(v) => setPerusahaanFilter(v as "Semua" | "Lokal" | "Asing")}
+              />
+            }
+          >
+            <PerusahaanInvestorBar data={data?.perusahaanInvestor ?? []} filter={perusahaanFilter} />
+          </ChartCard>
+        </div>
 
-        <ChartCard
-          title="Hubungan Investor dan Sektor"
-          className="h-full"
-          action={
-            <ChartFilterSelect
-              value={heatmapCategory}
-              options={investorOptions}
-              onChange={(v) => setHeatmapCategory(v as InvestorCategory | "All")}
-            />
-          }
-        >
-          {loadingHeatmap ? (
-            <ChartLoadingState height={360} />
-          ) : (
-            <InvestorSectorHeatmap
-              cells={heatmap.cells}
-              investors={heatmap.investors}
-              maxValue={heatmap.maxValue}
-            />
-          )}
-        </ChartCard>
+        <div className="lg:col-span-1">
+          <ChartCard
+            title="Dominasi Investor Asing (PMA) dan Domestik (PMDN)"
+            className="h-[480px]"
+            action={
+              <ChartFilterSelect
+                value={String(dominasiTahun)}
+                options={dominasiTahunOptions}
+                onChange={(v) => setDominasiTahun(Number(v))}
+              />
+            }
+          >
+            <DominasiDonut data={data?.dominasiInvestor ?? []} tahun={dominasiTahun} />
+          </ChartCard>
+        </div>
       </div>
 
-      {/* Row 3: pie + line */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard
-          title="Dominasi Investor Asing (PMA) dan Domestik (PMDN)"
-          subtitle="Dalam pencarian peluang investasi pariwisata"
-          action={
-            <ChartFilterSelect value={pieYear} options={yearOptions} onChange={setPieYear} />
-          }
-        >
-          {loadingPie ? <ChartLoadingState /> : <ForeignDomesticPie data={foreignDomestic} />}
-        </ChartCard>
+      {/* Row 3: Heatmap (full width) */}
+      <ChartCard
+        title="Hubungan Investor dan Sektor Pariwisata Indonesia"
+        className="min-h-[300px]"
+        action={
+          <ChartFilterSelect
+            value={heatmapFilter}
+            options={investorCategoryOptions}
+            onChange={(v) => setHeatmapFilter(v as "Semua" | "Lokal" | "Asing")}
+          />
+        }
+      >
+        <InvestorSektorHeatmap data={data?.hubunganInvestorSektor ?? []} filter={heatmapFilter} />
+      </ChartCard>
 
-        <ChartCard
-          title="Perkembangan Intensitas Pencarian Peluang Investasi"
-          subtitle="10 DPP dan 3 DPR"
-          action={
-            <ChartFilterSelect
-              value={searchDest}
-              options={destinationOptions}
-              onChange={setSearchDest}
-            />
-          }
-        >
-          {loadingSearch ? (
-            <ChartLoadingState height={320} />
-          ) : (
-            <SearchIntensityMultiLine
-              data={searchIntensity.data}
-              lines={searchIntensity.lines}
-            />
-          )}
-        </ChartCard>
-      </div>
+      {/* Row 4: Intensitas Line */}
+      <ChartCard
+        title="Perkembangan Intensitas Pencarian Peluang Investasi"
+        className="h-[380px]"
+        action={
+          <ChartFilterSelect
+            value={intensitasFilter}
+            options={intensitasOptions}
+            onChange={setIntensitasFilter}
+          />
+        }
+      >
+        <IntensitasPencarianLine data={data?.intensitasPencarian ?? []} filter={intensitasFilter} />
+      </ChartCard>
     </div>
   );
 }

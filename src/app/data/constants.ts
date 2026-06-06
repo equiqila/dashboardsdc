@@ -45,19 +45,19 @@ export const DESTINATION_LINE_COLORS = [
 ];
 
 export const DESTINATIONS: Destination[] = [
-  { id: "mandala", name: "Mandalika", type: "DPP" },
-  { id: "labuan-bajo", name: "Labuan Bajo", type: "DPP" },
-  { id: "borobudur", name: "Borobudur", type: "DPP" },
-  { id: "danau-toba", name: "Danau Toba", type: "DPP" },
-  { id: "likupang", name: "Likupang", type: "DPP" },
-  { id: "tanjung-kelayang", name: "Tanjung Kelayang", type: "DPP" },
+  { id: "mandala", name: "Mandalika", type: "DPP", provinceMatch: "NTB" },
+  { id: "labuan-bajo", name: "Labuan Bajo", type: "DPP", provinceMatch: "NTT" },
+  { id: "borobudur", name: "Borobudur", type: "DPP", provinceMatch: "Jawa Tengah & DI Yogyakarta" },
+  { id: "danau-toba", name: "Danau Toba", type: "DPP", provinceMatch: "Sumatera Utara" },
+  { id: "likupang", name: "Likupang", type: "DPP", provinceMatch: "Sulawesi Utara" },
+  { id: "tanjung-kelayang", name: "Tanjung Kelayang", type: "DPP", provinceMatch: "Kepulauan Bangka Belitung" },
   { id: "morotai", name: "Morotai", type: "DPP" },
   { id: "wakatobi", name: "Wakatobi", type: "DPP" },
-  { id: "raja-ampat", name: "Raja Ampat", type: "DPP" },
+  { id: "raja-ampat", name: "Raja Ampat", type: "DPP", provinceMatch: "Papua Barat & Papua Barat Daya" },
   { id: "bunaken", name: "Bunaken", type: "DPP" },
-  { id: "bali", name: "Bali", type: "DPR" },
-  { id: "yogyakarta", name: "Yogyakarta", type: "DPR" },
-  { id: "jakarta", name: "Jakarta", type: "DPR" },
+  { id: "bali", name: "Bali", type: "DPR", provinceMatch: "Bali" },
+  { id: "yogyakarta", name: "Yogyakarta", type: "DPR", provinceMatch: "Jawa Tengah & DI Yogyakarta" },
+  { id: "jakarta", name: "Jakarta", type: "DPR", provinceMatch: "DKI Jakarta" },
 ];
 
 export const YEARS = ["2019", "2020", "2021", "2022", "2023", "2024", "2025"];
