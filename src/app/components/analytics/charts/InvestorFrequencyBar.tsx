@@ -24,18 +24,18 @@ function InvestorFrequencyBarComponent({ data, compact }: Props) {
   const chartHeight = 360;
 
   return (
-    <ResponsiveContainer width="100%" height={chartHeight}>
-      <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 4 }}>
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 80 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
         <XAxis
           dataKey="name"
-          tick={{ fontSize: 9 }}
-          angle={-40}
+          tick={{ fontSize: 10, fill: "#6b7280" }}
+          angle={-45}
           textAnchor="end"
-          height={compact ? 64 : 72}
+          height={100}
           interval={0}
         />
-        <YAxis tick={{ fontSize: 11 }} width={36} />
+        <YAxis tick={{ fontSize: 11, fill: "#6b7280" }} width={36} />
         <Tooltip
           contentStyle={TOOLTIP_STYLE}
           content={({ active, payload }) => {

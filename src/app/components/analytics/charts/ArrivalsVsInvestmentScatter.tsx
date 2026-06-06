@@ -24,30 +24,36 @@ function ArrivalsVsInvestmentScatterComponent({ data }: Props) {
 
   return (
     <ResponsiveContainer width="100%" height={320}>
-      <ScatterChart margin={{ top: 10, right: 20, bottom: 10, left: 10 }}>
+      <ScatterChart margin={{ top: 20, right: 30, bottom: 40, left: 30 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
         <XAxis
           type="number"
           dataKey="arrivals"
           name="Tourist Arrivals"
-          tick={{ fontSize: 12 }}
+          tick={{ fontSize: 11 }}
           tickFormatter={(v) => formatNumber(v)}
           label={{
             value: "Tourist Arrivals",
             position: "bottom",
+            offset: 20,
             fontSize: 12,
+            fill: "#6b7280"
           }}
         />
         <YAxis
           type="number"
           dataKey="investmentValue"
           name="Investment Value"
-          tick={{ fontSize: 12 }}
+          tick={{ fontSize: 11 }}
+          tickFormatter={(v) => formatNumber(v)}
+          width={60}
           label={{
             value: "New Investment (B Rp)",
             angle: -90,
             position: "insideLeft",
+            offset: -10,
             fontSize: 12,
+            fill: "#6b7280"
           }}
         />
         <ZAxis range={[80, 400]} />

@@ -129,7 +129,7 @@ export function InvestorAnalyticsPage() {
           }
         >
           {loadingFrequency ? (
-            <ChartLoadingState height={240} />
+            <ChartLoadingState height={320} />
           ) : (
             <InvestorFrequencyBar data={investorFrequency} compact />
           )}

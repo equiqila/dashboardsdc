@@ -17,8 +17,14 @@ export function useChartLoading(deps: unknown[], delay = 280): boolean {
 }
 
 export function formatNumber(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  const format = (val: number, unit: string) => {
+    const formatted = val % 1 === 0 ? val.toString() : val.toFixed(1);
+    return `${formatted}${unit}`;
+  };
+
+  if (n >= 1_000_000_000) return format(n / 1_000_000_000, "B");
+  if (n >= 1_000_000) return format(n / 1_000_000, "M");
+  if (n >= 1_000) return format(n / 1_000, "K");
   return n.toLocaleString();
 }
 
