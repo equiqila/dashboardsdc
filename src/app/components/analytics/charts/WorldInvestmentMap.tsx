@@ -4,6 +4,7 @@ import {
   Geographies,
   Geography,
   ZoomableGroup,
+  Marker,
 } from "react-simple-maps";
 import { X, Building2, Layers } from "lucide-react";
 import type {
@@ -59,16 +60,18 @@ interface Props {
   year: string;
 }
 
-// Multi-color scale: Yellow → Green → Blue for better contrast
+// Green + Yellow Palette from user upload
 function getFillColor(intensity: number, hasData: boolean, selected: boolean): string {
-  if (selected) return "#1e3a8a"; // dark blue when selected
-  if (!hasData) return "#f1f5f9"; // very light gray for no data
+  if (selected) return "#000000"; // black/very dark when selected
+  if (!hasData) return "#f1f5f9";
 
-  if (intensity >= 0.8) return "#1e40af"; // darkest blue
-  if (intensity >= 0.6) return "#1d4ed8"; // blue
-  if (intensity >= 0.4) return "#059669"; // green
-  if (intensity >= 0.2) return "#10b981"; // light green
-  return "#facc15";              // yellow (baseline data)
+  // Levels: #1C2414, #394E2C, #647A4C, #77905B, #F0D003, #FAE526
+  if (intensity >= 0.8) return "#1C2414";
+  if (intensity >= 0.6) return "#394E2C";
+  if (intensity >= 0.4) return "#647A4C";
+  if (intensity >= 0.2) return "#77905B";
+  if (intensity > 0) return "#F0D003";
+  return "#FAE526"; // baseline/sangat rendah
 }
 
 function CountryDetailPanel({
@@ -200,8 +203,11 @@ function WorldInvestmentMapComponent({ negaraData, perusahaanData, hubunganSekto
 
     // Calculate sector breakdown based on these companies
     const sectorMap = new Map<string, number>();
+    const normalizedCompanyNames = selectedCompanyNames.map(n => n.toLowerCase().replace(/\s+/g, '').replace(/s$/, ''));
+
     hubunganSektorData.forEach((h) => {
-      if (selectedCompanyNames.includes(h.perusahaan)) {
+      const hn = h.perusahaan.toLowerCase().replace(/\s+/g, '').replace(/s$/, '');
+      if (normalizedCompanyNames.includes(hn)) {
         sectorMap.set(h.sektor, (sectorMap.get(h.sektor) ?? 0) + h.jumlah);
       }
     });
@@ -278,7 +284,7 @@ function WorldInvestmentMapComponent({ negaraData, perusahaanData, hubunganSekto
                       style={{
                         default: { outline: "none" },
                         hover: {
-                          fill: countryData ? (isSelected ? "#022c22" : "#047857") : "#d1d5db",
+                          fill: countryData ? (isSelected ? "#000" : "#394E2C") : "#d1d5db",
                           outline: "none",
                           cursor: countryData ? "pointer" : "default",
                         },
@@ -307,6 +313,40 @@ function WorldInvestmentMapComponent({ negaraData, perusahaanData, hubunganSekto
                 })
               }
             </Geographies>
+
+            {/* Marker for small regions like Singapore and Hong Kong */}
+            {mapData.map((d) => {
+              if (d.country === "Singapura" || d.country === "Hong Kong") {
+                const coords: [number, number] = d.country === "Singapura" ? [103.8198, 1.3521] : [114.1694, 22.3193];
+                return (
+                  <Marker key={d.country} coordinates={coords}>
+                    <circle
+                      cx={0}
+                      cy={0}
+                      r={3}
+                      className="cursor-pointer"
+                      fill={getFillColor(d.intensity, true, selected?.country === d.country)}
+                      stroke="#fff"
+                      strokeWidth={1}
+                      onClick={() => handleClick(d)}
+                      onMouseEnter={(e) => {
+                        setHovered(d);
+                        const rect = (e.target as SVGCircleElement).getBoundingClientRect();
+                        const parent = (e.target as SVGCircleElement).closest(".relative")?.getBoundingClientRect();
+                        if (parent) {
+                          setTooltipPos({
+                            x: rect.left - parent.left + rect.width / 2,
+                            y: rect.top - parent.top,
+                          });
+                        }
+                      }}
+                      onMouseLeave={() => setHovered(null)}
+                    />
+                  </Marker>
+                );
+              }
+              return null;
+            })}
           </ZoomableGroup>
         </ComposableMap>
       </div>
@@ -329,24 +369,24 @@ function WorldInvestmentMapComponent({ negaraData, perusahaanData, hubunganSekto
       <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground flex-wrap">
         <span>Intensitas Investasi:</span>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: "#1e40af" }} />
-          <span>Sangat Tinggi (Biru Tua)</span>
+          <div className="w-4 h-4 rounded" style={{ backgroundColor: "#1C2414" }} />
+          <span>Sangat Tinggi</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: "#1d4ed8" }} />
-          <span>Tinggi (Biru)</span>
+          <div className="w-4 h-4 rounded" style={{ backgroundColor: "#394E2C" }} />
+          <span>Tinggi</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: "#059669" }} />
-          <span>Menengah (Hijau)</span>
+          <div className="w-4 h-4 rounded" style={{ backgroundColor: "#647A4C" }} />
+          <span>Menengah</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: "#10b981" }} />
-          <span>Rendah (Hijau Muda)</span>
+          <div className="w-4 h-4 rounded" style={{ backgroundColor: "#77905B" }} />
+          <span>Rendah</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: "#facc15" }} />
-          <span>Baseline (Kuning)</span>
+          <div className="w-4 h-4 rounded" style={{ backgroundColor: "#FAE526" }} />
+          <span>Sangat Rendah</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded bg-[#f1f5f9]" />

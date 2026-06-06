@@ -36,7 +36,7 @@ function DominasiDonutComponent({ data, tahun }: Props) {
                         data={chartData}
                         cx="50%"
                         cy="50%"
-                        innerRadius="55%"
+                        innerRadius="0%"
                         outerRadius="75%"
                         paddingAngle={3}
                         dataKey="value"

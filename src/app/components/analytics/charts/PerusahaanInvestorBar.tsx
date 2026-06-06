@@ -64,7 +64,7 @@ function PerusahaanInvestorBarComponent({ data, filter }: Props) {
                 <Bar dataKey="jumlah" radius={[4, 4, 0, 0]} maxBarSize={40}>
                     <LabelList dataKey="jumlah" position="top" style={{ fontSize: 11, fill: "#374151" }} />
                     {chartData.map((_, i) => (
-                        <Cell key={i} fill={i < 3 ? TOP3_COLORS[i] : DEFAULT_COLOR} />
+                        <Cell key={i} fill="#0e5e54" />
                     ))}
                 </Bar>
             </BarChart>

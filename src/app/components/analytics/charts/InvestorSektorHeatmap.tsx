@@ -109,7 +109,7 @@ function InvestorSektorHeatmapComponent({ data, filter }: Props) {
                                                 }}
                                                 title={`${company} • ${sektor}: ${val}`}
                                             >
-                                                {val > 0 ? val : ""}
+                                                {val}
                                             </div>
                                         </td>
                                     );
